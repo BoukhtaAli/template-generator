@@ -158,7 +158,16 @@
           <!--    Entities List Settings   -->
 
           <template v-if="tab.name==='entitiesList'">
-            Hello
+
+            <b-row>
+              <b-col class="col-4">
+                <label class="sub-wizard-title">Entities Resume</label>
+              </b-col>
+              <b-col class="col-8">
+                <label class="sub-wizard-title">Entities Management</label>
+              </b-col>
+            </b-row>
+
           </template>
 
         </tab-content>
@@ -357,6 +366,12 @@ export default {
 .main-wizard-buttons-margin {
   margin-right: 5px;
   margin-left: 5px;
+}
+
+.sub-wizard-title {
+  font-weight: bold;
+  font-size: 18px;
+  color: saddlebrown;
 }
 
 </style>
