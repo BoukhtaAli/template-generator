@@ -163,14 +163,14 @@
 
               <b-col class="col-4 text-center my-auto">
                 <label class="sub-wizard-title">Entities Resume</label>
-                <b-table striped bordered hover :items="entities" :fields="entities_table_fields">
+                <b-table striped bordered hover :items="dataModel.entities" :fields="entities_table_fields">
                   <template #cell(embedded)="data">
                     <b-badge :variant="getColor(data.value)" class="px-3">
                       {{ data.value }}
                     </b-badge>
                   </template>
                   <template #cell(actions)="data">
-                    <div v-if="entities !== null & entities.length !== 0">
+                    <div v-if="dataModel.entities !== null & dataModel.entities.length !== 0">
                       <i v-for="rowAction in entities_table_row_actions" :key="rowAction.key" :title="rowAction.label" class="table-icons" @click="captureTableEvents(data.item, rowAction.actionEvent)"
                          :class="`${rowAction.class} ${rowAction.icon}`" />
                     </div>
@@ -304,7 +304,80 @@
                     </template>
 
                     <template v-if="entitiesTab.name==='attributeSettings'">
-                      Hello
+                      <b-row class="text-center">
+                        <b-col v-if="tempEntity.attributes.length ===0" class="text-danger font-weight-bold col-12">Attributes list is empty please add at least one element</b-col>
+                        <b-col><i class="fa fa-plus-circle table-icons ml-0" style="color: #17a2b8 !important;" title="add attribute" @click="addAttribute()"/></b-col>
+                      </b-row>
+
+                      <b-row v-for="(attribute, index) in $v.tempEntity.attributes.$each.$iter" :key="index" >
+                        <b-col>
+                          <b-form-group label="Name :" class="form-input-label">
+                            <b-form-input
+                                v-model="attribute.name.$model"
+                                type="text"
+                                placeholder="Enter Attribute Name"
+                                @blur="attribute.name.$touch()"
+                            />
+                            <div v-if="attribute.name.$error">
+                              <span class="errorMsg" v-if="!attribute.name.$error.required"> name is required! </span>
+                            </div>
+                          </b-form-group>
+                        </b-col>
+                        <b-col>
+                          <label class="form-input-label">Modifier :</label>
+                          <multiselect
+                              :options="attributeModifiersOptions"
+                              placeholder="Select an Option"
+                              track-by="value"
+                              label="label"
+                              :searchable="false"
+                              :allow-empty="false"
+                              :close-on-select="true"
+                              :multiple="false"
+                              v-model="attribute.modifier.$model"
+                          />
+                          <div v-if="attribute.modifier.$error">
+                            <span class="errorMsg" v-if="!attribute.modifier.ensureNotEmpty"> modifier is required! </span>
+                          </div>
+                        </b-col>
+                        <b-col>
+                          <label class="form-input-label">Type :</label>
+                          <multiselect
+                              :options="attributeTypesOptions"
+                              placeholder="Select an Option"
+                              track-by="value"
+                              label="label"
+                              :searchable="false"
+                              :allow-empty="false"
+                              :close-on-select="true"
+                              :multiple="false"
+                              v-model="attribute.type.$model"
+                              @input="updateProjectSuperEmbeddedClassDropdownList($event, index)"
+                          />
+                          <div v-if="attribute.type.$error">
+                            <span class="errorMsg" v-if="!attribute.type.ensureNotEmpty"> type is required! </span>
+                          </div>
+                        </b-col>
+                        <b-col v-if="attribute.type.$model.value === 'Object'">
+                          <label class="form-input-label">Class Name :</label>
+                          <multiselect
+                              :options="superClassEmbeddedDropdownList"
+                              placeholder="Select an Option"
+                              :searchable="false"
+                              :allow-empty="false"
+                              :close-on-select="true"
+                              :multiple="false"
+                              v-model="attribute.className.$model"
+                          />
+                          <div v-if="attribute.className.$error">
+                            <span class="errorMsg" v-if="!attribute.className.ensureNotEmpty"> class is required! </span>
+                          </div>
+                        </b-col>
+                      </b-row>
+                    </template>
+
+                    <template v-if="entitiesTab.name==='joinsSettings'">
+
                     </template>
 
                   </tab-content>
@@ -380,8 +453,6 @@ export default {
       };
 
       this.onEntitiesWizardReset();
-
-      notyf.open({type: "warning", message: "Form Has Been Reset!"});
     },
     onEntitiesWizardReset(){
 
@@ -394,6 +465,7 @@ export default {
         superClass: '',
         equalsAndHashCode:'',
         embeddable: '',
+        attributes: []
       };
 
       this.selectedSuperClassType = {
@@ -401,6 +473,7 @@ export default {
         value: '',
       };
 
+      notyf.open({type: "warning", message: "Form Has Been Reset!"});
     },
     updateTechnologyVersionDropdown(event){
 
@@ -447,7 +520,7 @@ export default {
 
     },
     isEntitiesListValid(){
-      return this.isEntityGeneralSettingsValid() && this.isEntitiesAttributesListValid();
+      return this.isEntityGeneralSettingsValid() && this.isEntitiesAttributesListValid() && this.isJoinsListValid();
     },
     isEntityGeneralSettingsValid(){
 
@@ -472,6 +545,25 @@ export default {
       });
     },
     isEntitiesAttributesListValid(){
+
+      this.$v.tempEntity.attributes.$touch();
+
+      if( this.$v.tempEntity.attributes.$error ) {
+
+        notyf.open({type: "error", message: "Form is Invalid!"});
+
+        return new Promise((resolve) => {
+          resolve(false);
+        });
+
+      }
+
+      return new Promise((resolve) => {
+        resolve(true);
+      });
+
+    },
+    isJoinsListValid(){
       return new Promise((resolve) => {
         resolve(true);
       });
@@ -507,12 +599,50 @@ export default {
 
       switch (event.value){
         case 'PROJECT':
-          tempSuperClassDropdownList = this.entities.filter(entity => {return entity.embedded === false});
+          this.superClassDropdownList = [];
+          tempSuperClassDropdownList = this.dataModel.entities.filter(entity => {return entity.embedded === false});
           for (let i = 0; i < tempSuperClassDropdownList.length; i++) {
             this.superClassDropdownList.push(tempSuperClassDropdownList[i].class_name);
           }
           break;
       }
+    },
+    updateProjectSuperEmbeddedClassDropdownList(event, key){
+
+      let tempSuperClassDropdownList = [];
+
+      for (let i = 0; i < this.tempEntity.attributes.length; i++) {
+
+        if(i === parseInt(key)){
+          this.tempEntity.attributes[i].className = '';
+        }
+      }
+
+      switch (event.value){
+        case 'Object':
+          this.superClassEmbeddedDropdownList = [];
+          tempSuperClassDropdownList = this.dataModel.entities.filter(entity => {return entity.embedded === true});
+          for (let i = 0; i < tempSuperClassDropdownList.length; i++) {
+            this.superClassEmbeddedDropdownList.push(tempSuperClassDropdownList[i].class_name);
+          }
+          break;
+      }
+    },
+    addAttribute(){
+      let size = this.tempEntity.attributes.length;
+      this.tempEntity.attributes.push({
+        id: size,
+        name: '',
+        modifier: {
+          label: '',
+          value : ''
+        },
+        type : {
+          label: '',
+          value : ''
+        },
+        className: ''
+      });
     }
   },
   data () {
@@ -526,26 +656,29 @@ export default {
         projectVersion: '',
         technology: '',
         technologyVersion: '',
-        readme: ''
+        readme: '',
+        entities: [
+          {
+            class_name : 'Dog',
+            super_class: 'Animal',
+            embedded: true
+          },
+          {
+            class_name : 'Cat',
+            super_class: 'Animal',
+            embedded: false
+          }
+        ]
       },
-      entities: [
-        {
-          class_name : 'Dog',
-          super_class: 'Animal',
-          embedded: true
-        },
-        {
-          class_name : 'Cat',
-          super_class: 'Animal',
-          embedded: false
-        }
-      ],
       tempEntity: {
         name: '',
         serializable: '',
         superClass: '',
         equalsAndHashCode:'',
-        embeddable: ''
+        embeddable: '',
+        attributes: [
+
+        ]
       },
       selectedSuperClassType : {
         label: 'No Selection',
@@ -557,7 +690,8 @@ export default {
       ],
       entitiesWizardTabs:[
         { name: 'generalEntitiesSettings', title: 'Global Information', icon: 'fa fa-info-circle', beforeChange : () => this.isEntityGeneralSettingsValid()},
-        { name: 'attributeSettings', title: 'Attributes', icon: 'fa fa-list', beforeChange : () => this.isEntitiesAttributesListValid()}
+        { name: 'attributeSettings', title: 'Attributes', icon: 'fa fa-list', beforeChange : () => this.isEntitiesAttributesListValid()},
+        { name: 'joinsList', title: 'Joins List', icon: 'fa fa-map-signs', beforeChange : () => this.isJoinsListValid()},
       ],
       technologiesDropdownsList : [
         {
@@ -677,6 +811,65 @@ export default {
       ],
       superClassDropdownList : [
 
+      ],
+      superClassEmbeddedDropdownList: [
+
+      ],
+      attributeTypesOptions: [
+        {
+          label: 'Integer',
+          value: 'int'
+        },
+        {
+          label: 'Float',
+          value: 'float'
+        },
+        {
+          label: 'Long',
+          value: 'long'
+        },
+        {
+          label: 'Double',
+          value: 'double'
+        },
+        {
+          label: 'Boolean',
+          value: 'boolean'
+        },
+        {
+          label: 'Character',
+          value: 'char'
+        },
+        {
+          label: 'String',
+          value: 'String'
+        },
+        {
+          label: 'Date',
+          value: 'date'
+        },
+        {
+          label: 'DateTime',
+          value: 'dateTime'
+        },
+        {
+          label: 'Timestamp',
+          value: 'timestamp'
+        },
+        {
+          label: 'Object',
+          value: 'Object'
+        },
+      ],
+      attributeModifiersOptions: [
+        {
+          label: 'Public',
+          value: 'public'
+        },
+        {
+          label: 'Private',
+          value: 'private'
+        }
       ]
     }
   },
@@ -708,6 +901,9 @@ export default {
       },
       readme:{
         required
+      },
+      entities: {
+        required
       }
     },
     tempEntity: {
@@ -726,6 +922,31 @@ export default {
       embeddable: {
         required
       },
+      attributes: {
+        required,
+        $each: {
+          name: {
+            required
+          },
+          modifier: {
+            required,
+            ensureNotEmpty(data){
+              return data.value !== '';
+            }
+          },
+          type: {
+            required,
+            ensureNotEmpty(data){
+              return data.value !== '';
+            }
+          },
+          className: {
+            ensureNotEmpty(data, currentRow){
+              return currentRow.type.value === 'Object' ? data !== undefined && data!=='' : true;
+            }
+          }
+        }
+      }
     }
   }
 }
