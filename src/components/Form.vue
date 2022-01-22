@@ -164,7 +164,7 @@
               <b-col class="col-4 text-center my-auto">
                 <label class="sub-wizard-title">Entities Resume</label>
                 <b-table striped bordered hover :items="dataModel.entities" :fields="entities_table_fields">
-                  <template #cell(embedded)="data">
+                  <template #cell(embeddable)="data">
                     <b-badge :variant="getColor(data.value)" class="px-3">
                       {{ data.value }}
                     </b-badge>
@@ -600,7 +600,7 @@ export default {
       switch (event.value){
         case 'PROJECT':
           this.superClassDropdownList = [];
-          tempSuperClassDropdownList = this.dataModel.entities.filter(entity => {return entity.embedded === false});
+          tempSuperClassDropdownList = this.dataModel.entities.filter(entity => {return entity.embeddable === false});
           for (let i = 0; i < tempSuperClassDropdownList.length; i++) {
             this.superClassDropdownList.push(tempSuperClassDropdownList[i].class_name);
           }
@@ -621,7 +621,7 @@ export default {
       switch (event.value){
         case 'Object':
           this.superClassEmbeddedDropdownList = [];
-          tempSuperClassDropdownList = this.dataModel.entities.filter(entity => {return entity.embedded === true});
+          tempSuperClassDropdownList = this.dataModel.entities.filter(entity => {return entity.embeddable === true});
           for (let i = 0; i < tempSuperClassDropdownList.length; i++) {
             this.superClassEmbeddedDropdownList.push(tempSuperClassDropdownList[i].class_name);
           }
@@ -661,12 +661,12 @@ export default {
           {
             class_name : 'Dog',
             super_class: 'Animal',
-            embedded: true
+            embeddable: true
           },
           {
             class_name : 'Cat',
             super_class: 'Animal',
-            embedded: false
+            embeddable: false
           }
         ]
       },
@@ -721,8 +721,8 @@ export default {
           sortable: false
         },
         {
-          key: 'embedded',
-          label: 'Embedded',
+          key: 'embeddable',
+          label: 'Embeddable',
           sortable: false,
         },
         {
