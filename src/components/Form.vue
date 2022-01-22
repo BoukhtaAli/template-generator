@@ -376,8 +376,11 @@
                       </b-row>
                     </template>
 
-                    <template v-if="entitiesTab.name==='joinsSettings'">
-
+                    <template v-if="entitiesTab.name==='associationSettings'">
+                      <b-row class="text-center">
+                        <b-col v-if="tempEntity.associations.length ===0" class="text-danger font-weight-bold col-12">Association list is not required, but you can add associations by clicking the below button</b-col>
+                        <b-col><i class="fa fa-plus-circle table-icons ml-0" style="color: #17a2b8 !important;" title="add attribute" @click="addAssociation()"/></b-col>
+                      </b-row>
                     </template>
 
                   </tab-content>
@@ -465,7 +468,8 @@ export default {
         superClass: '',
         equalsAndHashCode:'',
         embeddable: '',
-        attributes: []
+        attributes: [],
+        associations: []
       };
 
       this.selectedSuperClassType = {
@@ -643,6 +647,44 @@ export default {
         },
         className: ''
       });
+    },
+    addAssociation(){
+
+      let tempAssociationDropdownList = this.dataModel.entities.filter(entity => {return entity.embeddable === false});
+
+      this.AssociationDropdownList = [];
+
+      for (let i = 0; i < tempAssociationDropdownList.length; i++) {
+        this.AssociationDropdownList.push(tempAssociationDropdownList[i].class_name);
+      }
+
+      let size = this.tempEntity.associations.length;
+
+      this.tempEntity.associations.push({
+        id: size,
+        target: '',
+        uniqueItem: {
+          label: '',
+          value : ''
+        },
+        cordinality : {
+          label: '',
+          value : ''
+        },
+        biDirectional: {
+          label: '',
+          value : ''
+        },
+        referenceName: '',
+        fetchType: {
+          label: '',
+          value : ''
+        },
+        cascadeType:{
+          label: '',
+          value : ''
+        }
+      });
     }
   },
   data () {
@@ -676,9 +718,8 @@ export default {
         superClass: '',
         equalsAndHashCode:'',
         embeddable: '',
-        attributes: [
-
-        ]
+        attributes: [],
+        associations : []
       },
       selectedSuperClassType : {
         label: 'No Selection',
@@ -691,7 +732,7 @@ export default {
       entitiesWizardTabs:[
         { name: 'generalEntitiesSettings', title: 'Global Information', icon: 'fa fa-info-circle', beforeChange : () => this.isEntityGeneralSettingsValid()},
         { name: 'attributeSettings', title: 'Attributes', icon: 'fa fa-list', beforeChange : () => this.isEntitiesAttributesListValid()},
-        { name: 'joinsList', title: 'Joins List', icon: 'fa fa-map-signs', beforeChange : () => this.isJoinsListValid()},
+        { name: 'associationSettings', title: 'Associations List', icon: 'fa fa-map-signs', beforeChange : () => this.isJoinsListValid()},
       ],
       technologiesDropdownsList : [
         {
@@ -870,6 +911,8 @@ export default {
           label: 'Private',
           value: 'private'
         }
+      ],
+      AssociationDropdownList: [
       ]
     }
   },
