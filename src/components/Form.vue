@@ -160,11 +160,123 @@
           <template v-if="tab.name==='entitiesList'">
 
             <b-row>
-              <b-col class="col-4">
+
+              <b-col class="col-4 text-center my-auto">
                 <label class="sub-wizard-title">Entities Resume</label>
+                <b-table striped bordered hover :items="dataModel.entities" :fields="entities_table_fields">
+                  <template #cell(embedded)="data">
+                    <b-badge :variant="getColor(data.value)" class="px-3">
+                      {{ data.value }}
+                    </b-badge>
+                  </template>
+                  <template #cell(actions)="data">
+                    <div v-if="dataModel.entities !== null & dataModel.entities.length !== 0">
+                      <i v-for="rowAction in entities_table_row_actions" :key="rowAction.key" :title="rowAction.label" class="table-icons" @click="captureTableEvents(data.item, rowAction.actionEvent)"
+                         :class="`${rowAction.class} ${rowAction.icon}`" />
+                    </div>
+                  </template>
+                </b-table>
               </b-col>
+
               <b-col class="col-8">
-                <label class="sub-wizard-title">Entities Management</label>
+                <p class="sub-wizard-title text-center">Entities Management</p>
+
+                <form-wizard title="" subtitle="" next-button-text="Next" color="#17a2b8" shape="tab" ref="entitiesWizard">
+                  <tab-content v-for="(entitiesTab,entitiesIndex) in entitiesWizardTabs" :key="entitiesIndex" :title="entitiesTab.title" :icon="entitiesTab.icon" :before-change="entitiesTab.beforeChange">
+
+                    <template v-if="entitiesTab.name==='generalEntitiesSettings'">
+                      <b-row>
+                        <b-col>
+                          <b-form-group label="Entity Name :" class="form-input-label">
+                            <b-form-input
+                                v-model="tempEntity.name"
+                                @blur="$v.tempEntity.name.$touch()"
+                                type="text"
+                                placeholder="Enter Entity Name"
+                            />
+                            <div v-if="$v.tempEntity.name.$error">
+                              <span class="errorMsg" v-if="!$v.tempEntity.name.$error.required"> entity name is required! </span>
+                            </div>
+                          </b-form-group>
+                        </b-col>
+                        <b-col>
+                          <label class="form-input-label">Is Class Embeddable :</label>
+                          <multiselect
+                              :options="embeddableOptions"
+                              placeholder="Select an Option"
+                              track-by="value"
+                              label="label"
+                              :searchable="false"
+                              :allow-empty="false"
+                              :close-on-select="true"
+                              :multiple="false"
+                              v-model="tempEntity.embeddable"
+                              @blur="$v.tempEntity.embeddable.$touch()"
+                          />
+                          <div v-if="$v.tempEntity.embeddable.$error">
+                            <span class="errorMsg" v-if="!$v.tempEntity.embeddable.$error.required"> embeddable information is required! </span>
+                          </div>
+                        </b-col>
+                      </b-row>
+                      <b-row>
+                        <b-col>
+                          <label class="form-input-label">Is Class Serializable :</label>
+                          <multiselect
+                              :options="serializableOptions"
+                              placeholder="Select an Option"
+                              track-by="value"
+                              label="label"
+                              :searchable="false"
+                              :allow-empty="false"
+                              :close-on-select="true"
+                              :multiple="false"
+                              v-model="tempEntity.serializable"
+                              @blur="$v.tempEntity.serializable.$touch()"
+                          />
+                          <div v-if="$v.tempEntity.serializable.$error">
+                            <span class="errorMsg" v-if="!$v.tempEntity.serializable.$error.required"> serializable information is required! </span>
+                          </div>
+                        </b-col>
+                        <b-col>
+                          <label class="form-input-label">Implement Equals & Hashcode Methods :</label>
+                          <multiselect
+                              :options="equalsHashCodeOptions"
+                              placeholder="Select an Option"
+                              track-by="value"
+                              label="label"
+                              :searchable="false"
+                              :allow-empty="false"
+                              :close-on-select="true"
+                              :multiple="false"
+                              v-model="tempEntity.equalsAndHashCode"
+                              @blur="$v.tempEntity.equalsAndHashCode.$touch()"
+                          />
+                          <div v-if="$v.tempEntity.equalsAndHashCode.$error">
+                            <span class="errorMsg" v-if="!$v.tempEntity.equalsAndHashCode.$error.required"> equals & hashcode information is required! </span>
+                          </div>
+                        </b-col>
+                      </b-row>
+                    </template>
+
+                    <template v-if="entitiesTab.name==='attributeSettings'">
+                      Hello
+                    </template>
+
+                  </tab-content>
+
+                  <template slot="footer" slot-scope="entitiesProps">
+                    <div class="wizard-footer-left">
+                      <wizard-button  v-if="entitiesProps.activeTabIndex > 0" @click.native="entitiesProps.prevTab()" :style="entitiesProps.fillButtonStyle">Previous</wizard-button>
+                      <wizard-button class="main-wizard-buttons-margin" :style="entitiesProps.fillButtonStyle" v-if="!entitiesProps.isLastStep" @click.native="entitiesProps.nextTab()" > Next </wizard-button>
+                    </div>
+                    <div class="wizard-footer-right">
+                      <wizard-button class="main-wizard-buttons-margin"  style="background-color: #ffc107; color: white" @click.native="onEntitiesWizardReset()"> Reset </wizard-button>
+                      <wizard-button class="main-wizard-buttons-margin"  style="background-color: #28a745; color: white" v-if="entitiesProps.isLastStep" @click.native="entitiesProps.nextTab()"> Validate </wizard-button>
+                    </div>
+                  </template>
+
+                </form-wizard>
+
               </b-col>
             </b-row>
 
@@ -206,6 +318,7 @@ export default {
     onSubmit() {
     },
     onReset() {
+
       this.$v.$reset();
       this.$refs['mainWizard'].reset();
       this.dataModel = {
@@ -217,9 +330,26 @@ export default {
         projectVersion: '',
         technology: '',
         technologyVersion: '',
-        readme: ''
+        readme: '',
+        entities: []
       };
+
+      this.onEntitiesWizardReset();
+
       notyf.open({type: "warning", message: "Form Has Been Reset!"});
+    },
+    onEntitiesWizardReset(){
+
+      this.$v.tempEntity.$reset();
+      this.$refs.entitiesWizard[0].reset();
+
+      this.tempEntity = {
+        name: '',
+        serializable: '',
+        superClass: '',
+        equalsAndHashCode:'',
+        embeddable: ''
+      }
     },
     updateTechnologyVersionDropdown(event){
 
@@ -266,7 +396,56 @@ export default {
 
     },
     isEntitiesListValid(){
+      return this.isEntityGeneralSettingsValid() && this.isEntitiesAttributesListValid();
+    },
+    isEntityGeneralSettingsValid(){
 
+      this.$v.tempEntity.name.$touch();
+      this.$v.tempEntity.equalsAndHashCode.$touch();
+      this.$v.tempEntity.embeddable.$touch();
+      this.$v.tempEntity.serializable.$touch();
+
+      if( this.$v.tempEntity.name.$error || this.$v.tempEntity.equalsAndHashCode.$error || this.$v.tempEntity.embeddable.$error || this.$v.tempEntity.serializable.$error ) {
+
+        notyf.open({type: "error", message: "Form is Invalid!"});
+
+        return new Promise((resolve) => {
+          resolve(false);
+        });
+
+      }
+
+      return new Promise((resolve) => {
+        resolve(true);
+      });
+    },
+    isEntitiesAttributesListValid(){
+      return new Promise((resolve) => {
+        resolve(true);
+      });
+    },
+    captureTableEvents(data, event){
+
+      console.log(data);
+
+      switch (event){
+        case 'editEntity' :
+          console.log('Edit Event!');
+          break;
+        case 'cloneEntity' :
+          console.log('Clone Event!');
+          break;
+        case 'displayEntity' :
+          console.log('Display Event!');
+          break;
+        case 'removeEntity' :
+          console.log('Remove Event!');
+          break;
+      }
+    },
+    getColor(value){
+        if (value === true ) return 'success'
+        if (value === false ) return 'danger'
     }
   },
   data () {
@@ -280,11 +459,29 @@ export default {
         projectVersion: '',
         technology: '',
         technologyVersion: '',
-        readme: ''
+        readme: '',
+        entities: [
+          {
+            class_name : 'Dog',
+            super_class: 'Animal',
+            embedded: true
+          }
+        ]
+      },
+      tempEntity: {
+        name: '',
+        serializable: '',
+        superClass: '',
+        equalsAndHashCode:'',
+        embeddable: ''
       },
       mainWizardTabs: [
         { name: 'generalSettings', title: 'General Settings', icon: 'fa fa-cogs', beforeChange : () => this.isGeneralSettingsValid()},
         { name: 'entitiesList', title: 'Entities List', icon: 'fa fa-database', beforeChange : () => this.isEntitiesListValid()}
+      ],
+      entitiesWizardTabs:[
+        { name: 'generalEntitiesSettings', title: 'Global Information', icon: 'fa fa-info-circle', beforeChange : () => this.isEntityGeneralSettingsValid()},
+        { name: 'attributeSettings', title: 'Attributes', icon: 'fa fa-list', beforeChange : () => this.isEntitiesAttributesListValid()}
       ],
       technologiesDropdownsList : [
         {
@@ -301,11 +498,106 @@ export default {
       ],
       javaTechnologiesVersionDropdownsList:[
           '1.8'
+      ],
+      entities_table_fields: [
+        {
+          key: 'class_name',
+          label: 'Class',
+          sortable: false
+        },
+        {
+          key: 'super_class',
+          label: 'Super Class',
+          sortable: false
+        },
+        {
+          key: 'embedded',
+          label: 'Embedded',
+          sortable: false,
+        },
+        {
+          key: 'actions',
+          label: 'Actions',
+          sortable: false,
+        }
+      ],
+      entities_table_row_actions: [
+        {
+          key: 'edit',
+          icon: 'fa fa-edit',
+          class: 'text-primary',
+          label: 'Edit',
+          actionEvent: 'editEntity'
+        },
+        {
+          key: 'clone',
+          icon: 'fa fa-copy',
+          class: 'text-info',
+          label: 'Clone',
+          actionEvent: 'cloneEntity'
+        },
+        {
+          key: 'display',
+          icon: 'fa fa-tv',
+          class: 'text-secondary',
+          label: 'Details',
+          actionEvent: 'displayEntity'
+        },
+        {
+          key: 'remove',
+          icon: 'fa fa-minus',
+          class: 'text-danger',
+          label: 'Remove',
+          actionEvent: 'removeEntity'
+        }
+      ],
+      serializableOptions : [
+        {
+          label: 'Yes',
+          value: true
+        },
+        {
+          label: 'No',
+          value: false
+        }
+      ],
+      equalsHashCodeOptions : [
+        {
+          label: 'Yes',
+          value: true
+        },
+        {
+          label: 'No',
+          value: false
+        }
+      ],
+      embeddableOptions : [
+        {
+          label: 'Yes',
+          value: true
+        },
+        {
+          label: 'No',
+          value: false
+        }
+      ],
+      superClassOptions: [
+        {
+          label: 'Java',
+          value: 'JAVA'
+        },
+        {
+          label: 'Spring Boot',
+          value: 'SPRING_BOOT'
+        },
+        {
+          label: 'Project',
+          value: 'PROJECT'
+        }
       ]
     }
   },
   validations: {
-
     dataModel: {
       projectName: {
         required
@@ -333,7 +625,26 @@ export default {
       },
       readme:{
         required
+      },
+      entities: {
       }
+    },
+    tempEntity: {
+      name: {
+        required
+      },
+      serializable: {
+        required
+      },
+      superClass: {
+        required
+      },
+      equalsAndHashCode: {
+        required
+      },
+      embeddable: {
+        required
+      },
     }
   }
 }
@@ -372,6 +683,12 @@ export default {
   font-weight: bold;
   font-size: 18px;
   color: saddlebrown;
+}
+
+.table-icons {
+  margin-left: 5px;
+  margin-right: 5px;
+  cursor: pointer;
 }
 
 </style>
