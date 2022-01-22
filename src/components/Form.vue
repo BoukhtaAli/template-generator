@@ -163,14 +163,14 @@
 
               <b-col class="col-4 text-center my-auto">
                 <label class="sub-wizard-title">Entities Resume</label>
-                <b-table striped bordered hover :items="dataModel.entities" :fields="entities_table_fields">
+                <b-table striped bordered hover :items="entities" :fields="entities_table_fields">
                   <template #cell(embedded)="data">
                     <b-badge :variant="getColor(data.value)" class="px-3">
                       {{ data.value }}
                     </b-badge>
                   </template>
                   <template #cell(actions)="data">
-                    <div v-if="dataModel.entities !== null & dataModel.entities.length !== 0">
+                    <div v-if="entities !== null & entities.length !== 0">
                       <i v-for="rowAction in entities_table_row_actions" :key="rowAction.key" :title="rowAction.label" class="table-icons" @click="captureTableEvents(data.item, rowAction.actionEvent)"
                          :class="`${rowAction.class} ${rowAction.icon}`" />
                     </div>
@@ -256,6 +256,51 @@
                           </div>
                         </b-col>
                       </b-row>
+                      <b-row class="mt-1">
+                        <b-col class="col-6">
+                          <label class="form-input-label">Super Class :</label>
+                          <multiselect
+                              :options="superClassOptions"
+                              placeholder="Select an Option"
+                              track-by="value"
+                              label="label"
+                              :searchable="false"
+                              :allow-empty="false"
+                              :close-on-select="true"
+                              :multiple="false"
+                              v-model="selectedSuperClassType"
+                              @input="updateProjectSuperClassDropdownList($event)"
+                          />
+                        </b-col>
+                        <b-col v-if="selectedSuperClassType !== undefined && selectedSuperClassType.value !== 'PROJECT' && selectedSuperClassType.value !== ''" class="col-6">
+                          <b-form-group label="Super Class Name :" class="form-input-label">
+                            <b-form-input
+                                v-model="tempEntity.superClass"
+                                @blur="$v.tempEntity.superClass.$touch()"
+                                type="text"
+                                placeholder="Enter Super Class Name"
+                            />
+                            <div v-if="$v.tempEntity.superClass.$error">
+                              <span class="errorMsg" v-if="!$v.tempEntity.superClass.$error.required"> super class is required! </span>
+                            </div>
+                          </b-form-group>
+                        </b-col>
+                        <b-col v-if="selectedSuperClassType !== undefined && selectedSuperClassType.value === 'PROJECT' && selectedSuperClassType.value !== ''" class="col-6">
+                          <label class="form-input-label">Super Class Name :</label>
+                          <multiselect
+                              :options="superClassDropdownList"
+                              placeholder="Select an Option"
+                              :searchable="false"
+                              :allow-empty="false"
+                              :close-on-select="true"
+                              :multiple="false"
+                              v-model="tempEntity.superClass"
+                          />
+                          <div v-if="$v.tempEntity.superClass.$error">
+                            <span class="errorMsg" v-if="!$v.tempEntity.superClass.$error.required"> super class is required! </span>
+                          </div>
+                        </b-col>
+                      </b-row>
                     </template>
 
                     <template v-if="entitiesTab.name==='attributeSettings'">
@@ -306,7 +351,7 @@
 </template>
 
 <script>
-import {required} from 'vuelidate/lib/validators';
+import {required,requiredIf} from 'vuelidate/lib/validators';
 import {notyf} from "@/notyf";
 
 export default {
@@ -348,8 +393,14 @@ export default {
         serializable: '',
         superClass: '',
         equalsAndHashCode:'',
-        embeddable: ''
-      }
+        embeddable: '',
+      };
+
+      this.selectedSuperClassType = {
+        label: 'No Selection',
+        value: '',
+      };
+
     },
     updateTechnologyVersionDropdown(event){
 
@@ -404,8 +455,9 @@ export default {
       this.$v.tempEntity.equalsAndHashCode.$touch();
       this.$v.tempEntity.embeddable.$touch();
       this.$v.tempEntity.serializable.$touch();
+      this.$v.tempEntity.superClass.$touch();
 
-      if( this.$v.tempEntity.name.$error || this.$v.tempEntity.equalsAndHashCode.$error || this.$v.tempEntity.embeddable.$error || this.$v.tempEntity.serializable.$error ) {
+      if( this.$v.tempEntity.name.$error || this.$v.tempEntity.superClass.$error || this.$v.tempEntity.equalsAndHashCode.$error || this.$v.tempEntity.embeddable.$error || this.$v.tempEntity.serializable.$error ) {
 
         notyf.open({type: "error", message: "Form is Invalid!"});
 
@@ -446,6 +498,21 @@ export default {
     getColor(value){
         if (value === true ) return 'success'
         if (value === false ) return 'danger'
+    },
+    updateProjectSuperClassDropdownList(event){
+
+      this.tempEntity.superClass = '';
+
+      let tempSuperClassDropdownList = [];
+
+      switch (event.value){
+        case 'PROJECT':
+          tempSuperClassDropdownList = this.entities.filter(entity => {return entity.embedded === false});
+          for (let i = 0; i < tempSuperClassDropdownList.length; i++) {
+            this.superClassDropdownList.push(tempSuperClassDropdownList[i].class_name);
+          }
+          break;
+      }
     }
   },
   data () {
@@ -459,21 +526,30 @@ export default {
         projectVersion: '',
         technology: '',
         technologyVersion: '',
-        readme: '',
-        entities: [
-          {
-            class_name : 'Dog',
-            super_class: 'Animal',
-            embedded: true
-          }
-        ]
+        readme: ''
       },
+      entities: [
+        {
+          class_name : 'Dog',
+          super_class: 'Animal',
+          embedded: true
+        },
+        {
+          class_name : 'Cat',
+          super_class: 'Animal',
+          embedded: false
+        }
+      ],
       tempEntity: {
         name: '',
         serializable: '',
         superClass: '',
         equalsAndHashCode:'',
         embeddable: ''
+      },
+      selectedSuperClassType : {
+        label: 'No Selection',
+        value: '',
       },
       mainWizardTabs: [
         { name: 'generalSettings', title: 'General Settings', icon: 'fa fa-cogs', beforeChange : () => this.isGeneralSettingsValid()},
@@ -583,6 +659,10 @@ export default {
       ],
       superClassOptions: [
         {
+          label: 'No Selection',
+          value: '',
+        },
+        {
           label: 'Java',
           value: 'JAVA'
         },
@@ -594,6 +674,9 @@ export default {
           label: 'Project',
           value: 'PROJECT'
         }
+      ],
+      superClassDropdownList : [
+
       ]
     }
   },
@@ -625,8 +708,6 @@ export default {
       },
       readme:{
         required
-      },
-      entities: {
       }
     },
     tempEntity: {
@@ -637,7 +718,7 @@ export default {
         required
       },
       superClass: {
-        required
+        required : requiredIf(function () {return this.selectedSuperClassType !== undefined && this.selectedSuperClassType.value !== '' })
       },
       equalsAndHashCode: {
         required
