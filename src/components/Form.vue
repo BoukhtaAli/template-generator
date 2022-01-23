@@ -9,13 +9,13 @@
 
       <form-wizard title="" subtitle="" next-button-text="Next" color="#17a2b8" shape="tab" ref="mainWizard">
 
-        <tab-content v-for="(tab,index) in mainWizardTabs" :key="index" :title="tab.title" :icon="tab.icon" :before-change="tab.beforeChange">
+        <tab-content v-for="(tab,index) in mainWizardTabs" :key="index" :title="tab.title" :icon="tab.icon" :before-change="tab.beforeChange" class="border-bottom">
 
           <!--    General Settings   -->
 
           <template v-if="tab.name==='generalSettings'">
 
-            <b-row>
+            <b-row class="pb-5">
               <b-col class="col-6">
                 <b-form-group label="Project Name :" class="form-input-label">
                   <b-form-input
@@ -161,7 +161,8 @@
 
             <b-row>
 
-              <b-col class="col-md-8 col-sm-12 col-lg-8 pb-5">
+              <b-col class="col-md-8 col-sm-12 col-lg-8 pb-5 border-right">
+
                 <p class="sub-wizard-title text-center">Entities Management</p>
 
                 <form-wizard title="" subtitle="" next-button-text="Next" color="saddlebrown" shape="tab" ref="entitiesWizard" @on-complete=addEntityToTable()>
@@ -221,7 +222,7 @@
                       </b-row>
                       <b-row>
                         <b-col>
-                          <label class="form-input-label">Implement Equals & Hashcode Methods :</label>
+                          <label class="form-input-label">Implement Equals & Hashcode :</label>
                           <multiselect
                               :options="equalsHashCodeOptions"
                               placeholder="Select an Option"
@@ -266,7 +267,7 @@
                             </div>
                           </b-form-group>
                         </b-col>
-                        <b-col v-if="selectedSuperClassType !== undefined && selectedSuperClassType.value === 'PROJECT' && selectedSuperClassType.value !== ''" class="col-6">
+                        <b-col v-if="selectedSuperClassType !== undefined && selectedSuperClassType.value === 'PROJECT' && selectedSuperClassType.value !== ''">
                           <label class="form-input-label">Super Class Name :</label>
                           <multiselect
                               :options="superClassDropdownList"
@@ -779,8 +780,38 @@ export default {
                   if(temp.id === this.tempEntity.id){
                     notyf.open({type: "error", message: "Object Under Modification..., Reset Entities Form and Retry!"});
                   }else {
-                    this.dataModel.entities =  this.dataModel.entities.filter(function(ele){ return ele.name !== temp.name });
-                    notyf.open({type: "success", message: "Entities List Updated!"});
+
+                    let isUsed = 0;
+
+                    for(let i=0; i< this.dataModel.entities.length; i++) {
+
+                      let currentObject = this.dataModel.entities[i];
+
+                      if(temp.embeddable.value === true){
+                        for(let j=0; j< currentObject.attributes.length; j++){
+                          if(currentObject.attributes[j].name === temp.name){
+                            isUsed++;
+                          }
+                        }
+                      } else if (temp.embeddable.value === false){
+
+                        if(currentObject.superClass === temp.name){
+                          isUsed++;
+                        }
+                        for(let j=0; j< currentObject.associations.length; j++){
+                          if(currentObject.associations[j].target === temp.name){
+                            isUsed++;
+                          }
+                        }
+                      }
+                    }
+
+                    if(isUsed === 0){
+                      this.dataModel.entities =  this.dataModel.entities.filter(function(ele){ return ele.name !== temp.name });
+                      notyf.open({type: "success", message: "Entities List Updated!"});
+                    }else {
+                      notyf.open({type: "error", message: "Item Is Linked To Other Entities, Cannot be Removed!"});
+                    }
                   }
                 }
               }
