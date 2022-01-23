@@ -163,7 +163,7 @@
 
               <b-col class="col-4 text-center my-auto">
                 <label class="sub-wizard-title">Entities Resume</label>
-                <b-table striped bordered hover :items="dataModel.entities" :fields="entities_table_fields">
+                <b-table ref="table" striped bordered hover :items="dataModel.entities" :fields="entities_table_fields">
                   <template #cell(superClass)="data">
                       {{ data.value !== null && data.value !== undefined  && data.value !== '' ? data.value : '---' }}
                   </template>
@@ -769,14 +769,20 @@ export default {
 
       switch (event){
         case 'editEntity' :
+          this.commonEntityWizardReset();
           this.tempEntity = {...temp};
           break;
         case 'removeEntity' :
           this.showMsgBox('delete').then(
               value => {
                 if(value){
-                  this.dataModel.entities =  this.dataModel.entities.filter(function(ele){ return ele.name !== temp.name });
-                  notyf.open({type: "success", message: "Entities List Updated!"});
+
+                  if(temp.id === this.tempEntity.id){
+                    notyf.open({type: "error", message: "Cannot Delete Object Under Modification!"});
+                  }else {
+                    this.dataModel.entities =  this.dataModel.entities.filter(function(ele){ return ele.name !== temp.name });
+                    notyf.open({type: "success", message: "Entities List Updated!"});
+                  }
                 }
               }
           );
@@ -895,15 +901,27 @@ export default {
     },
     addEntityToTable(){
 
-      let size = this.dataModel.entities.length;
+      this.showMsgBox('add').then(
+          value => {
+            if(value){
 
-      this.tempEntity.id = size;
+              const i = this.dataModel.entities.findIndex(_element => _element.id === this.tempEntity.id);
 
-      this.dataModel.entities.splice(size, 0, this.tempEntity);
+              if (i > -1){
+                this.dataModel.entities[i] = {...this.tempEntity};
+              }else {
+                this.tempEntity.id = this.dataModel.entities.length;
+                this.dataModel.entities.push({...this.tempEntity});
+              }
 
-      this.commonEntityWizardReset();
+              this.$refs.table[0].refresh();
 
-      notyf.open({type: "success", message: "Entities List Updated!"});
+              this.commonEntityWizardReset();
+              notyf.open({type: "success", message: "Entities List Updated!"});
+
+            }
+          }
+      );
     },
     refreshAttributeList(){
       this.tempEntity.attributes = [];
