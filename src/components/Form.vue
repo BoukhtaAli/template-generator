@@ -295,7 +295,12 @@
                       </b-row>
 
                       <b-row v-for="(attribute, index) in $v.tempEntity.attributes.$each.$iter" :key="index" >
-                        <b-col>
+                        <b-col class="col-1 mt-4 pt-1">
+                          <b-form-group label=" " class="form-input-label">
+                            <i class="fa fa-minus table-icons" style="color: red !important;" title="delete Entity" @click="tempEntity.attributes.splice(parseInt(index),1)"/>
+                          </b-form-group>
+                        </b-col>
+                        <b-col class="col-3">
                           <b-form-group label="Name :" class="form-input-label">
                             <b-form-input
                                 v-model="attribute.name.$model"
@@ -409,7 +414,11 @@
                       </b-row>
 
                       <b-row v-for="(association, index) in $v.tempEntity.associations.$each.$iter" :key="index" >
-
+                        <b-col class="col-1 mt-4 pt-1">
+                          <b-form-group label=" " class="form-input-label">
+                            <i class="fa fa-minus table-icons" style="color: red !important;" title="delete Association" @click="tempEntity.associations.splice(parseInt(index),1)"/>
+                          </b-form-group>
+                        </b-col>
                         <b-col class="col-4">
                           <label class="form-input-label">Target :</label>
                           <multiselect
@@ -440,7 +449,7 @@
                           </b-form-group>
                         </b-col>
 
-                        <b-col class="col-4">
+                        <b-col class="col-3">
                           <label class="form-input-label">Is Unique item :</label>
                           <multiselect
                               :options="uniqueItemDropdownOptions"
