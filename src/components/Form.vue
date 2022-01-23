@@ -164,9 +164,12 @@
               <b-col class="col-4 text-center my-auto">
                 <label class="sub-wizard-title">Entities Resume</label>
                 <b-table striped bordered hover :items="dataModel.entities" :fields="entities_table_fields">
+                  <template #cell(superClass)="data">
+                      {{ data.value !== null && data.value !== undefined  && data.value !== '' ? data.value : '---' }}
+                  </template>
                   <template #cell(embeddable)="data">
-                    <b-badge :variant="getColor(data.value)" class="px-3">
-                      {{ data.value }}
+                    <b-badge :variant="getColor(data.value.value)" class="px-3">
+                      {{ data.value.value }}
                     </b-badge>
                   </template>
                   <template #cell(actions)="data">
@@ -181,7 +184,7 @@
               <b-col class="col-8">
                 <p class="sub-wizard-title text-center">Entities Management</p>
 
-                <form-wizard title="" subtitle="" next-button-text="Next" color="saddlebrown" shape="tab" ref="entitiesWizard">
+                <form-wizard title="" subtitle="" next-button-text="Next" color="saddlebrown" shape="tab" ref="entitiesWizard" @on-complete=addEntityToTable()>
                   <tab-content v-for="(entitiesTab,entitiesIndex) in entitiesWizardTabs" :key="entitiesIndex" :title="entitiesTab.title" :icon="entitiesTab.icon" :before-change="entitiesTab.beforeChange">
 
                     <template v-if="entitiesTab.name==='generalEntitiesSettings'">
@@ -195,7 +198,7 @@
                                 placeholder="Enter Entity Name"
                             />
                             <div v-if="$v.tempEntity.name.$error">
-                              <span class="errorMsg" v-if="!$v.tempEntity.name.$error.required"> entity name is required! </span>
+                              <span class="errorMsg"> name is required, alphanumeric, and should not be duplicated</span>
                             </div>
                           </b-form-group>
                         </b-col>
@@ -306,7 +309,10 @@
                     <template v-if="entitiesTab.name==='attributeSettings'">
                       <b-row class="text-center">
                         <b-col v-if="tempEntity.attributes.length ===0" class="text-danger font-weight-bold col-12">Attributes list is empty please add at least one element</b-col>
-                        <b-col><i class="fa fa-plus-circle table-icons ml-0" style="color: #17a2b8 !important;" title="add attribute" @click="addAttribute()"/></b-col>
+                        <b-col>
+                          <i class="fa fa-plus-circle table-icons ml-0" style="color: #17a2b8 !important;" title="add attribute" @click="addAttribute()"/>
+                          <i class="fa fa-sync-alt table-icons ml-2" style="color: #ffc107 !important;" title="reset attribute list" @click="refreshAttributeList()"/>
+                        </b-col>
                       </b-row>
 
                       <b-row v-for="(attribute, index) in $v.tempEntity.attributes.$each.$iter" :key="index" >
@@ -341,7 +347,7 @@
                           </div>
                         </b-col>
                         <b-col>
-                          <label class="form-input-label">Type :</label>
+                          <label class="form-input-label">Data Type :</label>
                           <multiselect
                               :options="attributeTypesOptions"
                               placeholder="Select an Option"
@@ -351,35 +357,76 @@
                               :allow-empty="false"
                               :close-on-select="true"
                               :multiple="false"
-                              v-model="attribute.type.$model"
+                              v-model="attribute.dataType.$model"
                               @input="updateProjectSuperEmbeddedClassDropdownList($event, index)"
+                          />
+                          <div v-if="attribute.dataType.$error">
+                            <span class="errorMsg" v-if="!attribute.dataType.ensureNotEmpty"> data type is required! </span>
+                          </div>
+                        </b-col>
+                        <b-col v-if="attribute.dataType.$model.value === 'Object'">
+                          <label class="form-input-label">Type :</label>
+                          <multiselect
+                              :options="superClassEmbeddedDropdownList"
+                              placeholder="Select an Option"
+                              track-by="value"
+                              label="label"
+                              :searchable="false"
+                              :allow-empty="false"
+                              :close-on-select="true"
+                              :multiple="false"
+                              v-model="attribute.type.$model"
                           />
                           <div v-if="attribute.type.$error">
                             <span class="errorMsg" v-if="!attribute.type.ensureNotEmpty"> type is required! </span>
                           </div>
                         </b-col>
-                        <b-col v-if="attribute.type.$model.value === 'Object'">
-                          <label class="form-input-label">Class Name :</label>
+                        <b-col v-show="attribute.dataType.$model.value === 'Date'">
+                          <label class="form-input-label">Type :</label>
                           <multiselect
-                              :options="superClassEmbeddedDropdownList"
+                              :options="dateOptions"
                               placeholder="Select an Option"
+                              track-by="value"
+                              label="label"
                               :searchable="false"
                               :allow-empty="false"
                               :close-on-select="true"
                               :multiple="false"
-                              v-model="attribute.className.$model"
+                              v-model="attribute.type.$model"
                           />
-                          <div v-if="attribute.className.$error">
-                            <span class="errorMsg" v-if="!attribute.className.ensureNotEmpty"> class is required! </span>
+                          <div v-if="attribute.type.$error">
+                            <span class="errorMsg" v-if="!attribute.type.ensureNotEmpty"> type is required! </span>
+                          </div>
+                        </b-col>
+                        <b-col v-if="attribute.dataType.$model.value === 'Simple'">
+                          <label class="form-input-label">Type :</label>
+                          <multiselect
+                              :options="simpleTypeOptions"
+                              placeholder="Select an Option"
+                              track-by="value"
+                              label="label"
+                              :searchable="false"
+                              :allow-empty="false"
+                              :close-on-select="true"
+                              :multiple="false"
+                              v-model="attribute.type.$model"
+                          />
+                          <div v-if="attribute.type.$error">
+                            <span class="errorMsg" v-if="!attribute.type.ensureNotEmpty"> type is required! </span>
                           </div>
                         </b-col>
                       </b-row>
                     </template>
 
+                    <!--  Association Settings  -->
+
                     <template v-if="entitiesTab.name==='associationSettings'">
                       <b-row class="text-center">
                         <b-col v-if="tempEntity.associations.length ===0" class="text-danger font-weight-bold col-12">Association list is not required, but you can add associations by clicking the below button</b-col>
-                        <b-col><i class="fa fa-plus-circle table-icons ml-0" style="color: #17a2b8 !important;" title="add attribute" @click="addAssociation()"/></b-col>
+                        <b-col>
+                          <i class="fa fa-plus-circle table-icons ml-0" style="color: #17a2b8 !important;" title="add attribute" @click="addAssociation()"/>
+                          <i class="fa fa-sync-alt table-icons ml-2" style="color: #ffc107 !important;" title="reset association list" @click="refreshAssociationList()"/>
+                        </b-col>
                       </b-row>
 
                       <b-row v-for="(association, index) in $v.tempEntity.associations.$each.$iter" :key="index" >
@@ -745,9 +792,9 @@ export default {
       switch (event.value){
         case 'PROJECT':
           this.superClassDropdownList = [];
-          tempSuperClassDropdownList = this.dataModel.entities.filter(entity => {return entity.embeddable === false});
+          tempSuperClassDropdownList = this.dataModel.entities.filter(entity => {return entity.embeddable.value === false});
           for (let i = 0; i < tempSuperClassDropdownList.length; i++) {
-            this.superClassDropdownList.push(tempSuperClassDropdownList[i].class_name);
+            this.superClassDropdownList.push(tempSuperClassDropdownList[i].name);
           }
           break;
       }
@@ -759,16 +806,22 @@ export default {
       for (let i = 0; i < this.tempEntity.attributes.length; i++) {
 
         if(i === parseInt(key)){
-          this.tempEntity.attributes[i].className = '';
+          this.tempEntity.attributes[i].type = {
+            label: '',
+            value: ''
+          };
         }
       }
 
       switch (event.value){
         case 'Object':
           this.superClassEmbeddedDropdownList = [];
-          tempSuperClassDropdownList = this.dataModel.entities.filter(entity => {return entity.embeddable === true});
+          tempSuperClassDropdownList = this.dataModel.entities.filter(entity => {return entity.embeddable.value === true});
           for (let i = 0; i < tempSuperClassDropdownList.length; i++) {
-            this.superClassEmbeddedDropdownList.push(tempSuperClassDropdownList[i].class_name);
+            this.superClassEmbeddedDropdownList.push({
+              label : tempSuperClassDropdownList[i].name,
+              value : tempSuperClassDropdownList[i].name
+            });
           }
           break;
       }
@@ -782,21 +835,24 @@ export default {
           label: '',
           value : ''
         },
-        type : {
+        dataType : {
           label: '',
           value : ''
         },
-        className: ''
+        type: {
+          label: '',
+          value : ''
+        }
       });
     },
     addAssociation(){
 
-      let tempAssociationDropdownList = this.dataModel.entities.filter(entity => {return entity.embeddable === false});
+      let tempAssociationDropdownList = this.dataModel.entities.filter(entity => {return entity.embeddable.value === false});
 
       this.associationDropdownList = [];
 
       for (let i = 0; i < tempAssociationDropdownList.length; i++) {
-        this.associationDropdownList.push(tempAssociationDropdownList[i].class_name);
+        this.associationDropdownList.push(tempAssociationDropdownList[i].name);
       }
 
       let size = this.tempEntity.associations.length;
@@ -826,6 +882,22 @@ export default {
           value : ''
         }
       });
+    },
+    addEntityToTable(){
+
+      let size = this.dataModel.entities.length;
+
+      this.dataModel.entities.splice(size, 0, this.tempEntity);
+
+      this.commonEntityWizardReset();
+
+      notyf.open({type: "success", message: "Entity Added To Entities List!"});
+    },
+    refreshAttributeList(){
+      this.tempEntity.attributes = [];
+    },
+    refreshAssociationList(){
+      this.tempEntity.associations = [];
     }
   },
   data () {
@@ -841,16 +913,7 @@ export default {
         technologyVersion: '',
         readme: '',
         entities: [
-          {
-            class_name : 'Dog',
-            super_class: 'Animal',
-            embeddable: true
-          },
-          {
-            class_name : 'Cat',
-            super_class: 'Animal',
-            embeddable: false
-          }
+
         ]
       },
       tempEntity: {
@@ -882,7 +945,8 @@ export default {
         },
         {
           label: 'Python',
-          value: 'PYTHON'
+          value: 'PYTHON',
+          $isDisabled: true
         }
       ],
       technologiesVersionDropdownsList: [
@@ -893,12 +957,12 @@ export default {
       ],
       entities_table_fields: [
         {
-          key: 'class_name',
+          key: 'name',
           label: 'Class',
           sortable: false
         },
         {
-          key: 'super_class',
+          key: 'superClass',
           label: 'Super Class',
           sortable: false
         },
@@ -921,20 +985,20 @@ export default {
           label: 'Edit',
           actionEvent: 'editEntity'
         },
-        {
-          key: 'clone',
-          icon: 'fa fa-copy',
-          class: 'text-info',
-          label: 'Clone',
-          actionEvent: 'cloneEntity'
-        },
-        {
-          key: 'display',
-          icon: 'fa fa-tv',
-          class: 'text-secondary',
-          label: 'Details',
-          actionEvent: 'displayEntity'
-        },
+        // {
+        //   key: 'clone',
+        //   icon: 'fa fa-copy',
+        //   class: 'text-info',
+        //   label: 'Clone',
+        //   actionEvent: 'cloneEntity'
+        // },
+        // {
+        //   key: 'display',
+        //   icon: 'fa fa-tv',
+        //   class: 'text-secondary',
+        //   label: 'Details',
+        //   actionEvent: 'displayEntity'
+        // },
         {
           key: 'remove',
           icon: 'fa fa-minus',
@@ -999,6 +1063,20 @@ export default {
       ],
       attributeTypesOptions: [
         {
+          label: 'Simple',
+          value: 'Simple'
+        },
+        {
+          label: 'Date',
+          value: 'Date'
+        },
+        {
+          label: 'Object',
+          value: 'Object'
+        },
+      ],
+      simpleTypeOptions:[
+        {
           label: 'Integer',
           value: 'int'
         },
@@ -1025,23 +1103,21 @@ export default {
         {
           label: 'String',
           value: 'String'
+        }
+      ],
+      dateOptions:[
+        {
+          label: 'LocalDate',
+          value: 'LocalDate'
         },
         {
-          label: 'Date',
-          value: 'date'
-        },
-        {
-          label: 'DateTime',
-          value: 'dateTime'
+          label: 'LocalDateTime',
+          value: 'LocalDateTime'
         },
         {
           label: 'Timestamp',
-          value: 'timestamp'
-        },
-        {
-          label: 'Object',
-          value: 'Object'
-        },
+          value: 'Timestamp'
+        }
       ],
       attributeModifiersOptions: [
         {
@@ -1150,7 +1226,13 @@ export default {
     },
     tempEntity: {
       name: {
-        required
+        required,
+        ensureNotDuplicated(data){
+          return this.dataModel.entities.filter(entity => { return entity.name === data}).length === 0;
+        },
+        isAlpha(value) {
+          return /^[A-Za-z0-9]+$/i.test(value)
+        }
       },
       serializable: {
         required
@@ -1176,15 +1258,14 @@ export default {
               return data.value !== '';
             }
           },
-          type: {
-            required,
+          dataType: {
             ensureNotEmpty(data){
               return data.value !== '';
             }
           },
-          className: {
-            ensureNotEmpty(data, currentRow){
-              return currentRow.type.value === 'Object' ? data !== undefined && data!=='' : true;
+          type: {
+            ensureNotEmpty(data){
+              return data.value !== '';
             }
           }
         }
