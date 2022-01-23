@@ -161,7 +161,7 @@
 
             <b-row>
 
-              <b-col class="col-md-8 col-sm-12 col-lg-8 pb-5 border-right">
+              <b-col class="col-md-12 col-sm-12 col-lg-8 pb-5 border-right">
 
                 <p class="sub-wizard-title text-center">Entities Management</p>
 
@@ -179,7 +179,7 @@
                                 placeholder="Enter Entity Name"
                             />
                             <div v-if="$v.tempEntity.name.$error">
-                              <span class="errorMsg"> name is required, should be in valid format, and should not be duplicated</span>
+                              <span class="errorMsg"> name is required, should be in valid format, and should not be duplicated in Entities List</span>
                             </div>
                           </b-form-group>
                         </b-col>
@@ -550,7 +550,7 @@
 
               </b-col>
 
-              <b-col class="col-md-4 col-sm-12 col-lg-4 text-center mx-auto my-auto pb-5">
+              <b-col class="col-md-12 col-sm-12 col-lg-4 text-center mx-auto my-auto pb-5">
                 <label class="sub-wizard-title">Entities Resume</label>
                 <b-table ref="table" striped bordered hover :items="dataModel.entities" :fields="entities_table_fields">
                   <template #cell(superClass)="data">
@@ -789,7 +789,7 @@ export default {
 
                       if(temp.embeddable.value === true){
                         for(let j=0; j< currentObject.attributes.length; j++){
-                          if(currentObject.attributes[j].name === temp.name){
+                          if(currentObject.attributes[j].type.value === temp.name){
                             isUsed++;
                           }
                         }
