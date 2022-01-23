@@ -181,7 +181,7 @@
               <b-col class="col-8">
                 <p class="sub-wizard-title text-center">Entities Management</p>
 
-                <form-wizard title="" subtitle="" next-button-text="Next" color="#17a2b8" shape="tab" ref="entitiesWizard">
+                <form-wizard title="" subtitle="" next-button-text="Next" color="saddlebrown" shape="tab" ref="entitiesWizard">
                   <tab-content v-for="(entitiesTab,entitiesIndex) in entitiesWizardTabs" :key="entitiesIndex" :title="entitiesTab.title" :icon="entitiesTab.icon" :before-change="entitiesTab.beforeChange">
 
                     <template v-if="entitiesTab.name==='generalEntitiesSettings'">
@@ -313,14 +313,14 @@
                         <b-col>
                           <b-form-group label="Name :" class="form-input-label">
                             <b-form-input
-                                v-model="attribute.name.$model"
-                                type="text"
-                                placeholder="Enter Attribute Name"
-                                @blur="attribute.name.$touch()"
-                            />
-                            <div v-if="attribute.name.$error">
-                              <span class="errorMsg" v-if="!attribute.name.$error.required"> name is required! </span>
-                            </div>
+                            v-model="attribute.name.$model"
+                            type="text"
+                            placeholder="Enter Attribute Name"
+                            @blur="attribute.name.$touch()"
+                        />
+                          <div v-if="attribute.name.$error">
+                            <span class="errorMsg" v-if="!attribute.name.$error.required"> name is required! </span>
+                          </div>
                           </b-form-group>
                         </b-col>
                         <b-col>
@@ -381,18 +381,142 @@
                         <b-col v-if="tempEntity.associations.length ===0" class="text-danger font-weight-bold col-12">Association list is not required, but you can add associations by clicking the below button</b-col>
                         <b-col><i class="fa fa-plus-circle table-icons ml-0" style="color: #17a2b8 !important;" title="add attribute" @click="addAssociation()"/></b-col>
                       </b-row>
+
+                      <b-row v-for="(association, index) in $v.tempEntity.associations.$each.$iter" :key="index" >
+
+                        <b-col class="col-4">
+                          <label class="form-input-label">Target :</label>
+                          <multiselect
+                              :options="associationDropdownList"
+                              placeholder="Select Target Entity"
+                              :searchable="false"
+                              :allow-empty="false"
+                              :close-on-select="true"
+                              :multiple="false"
+                              v-model="association.target.$model"
+                          />
+                          <div v-if="association.target.$error">
+                            <span class="errorMsg" v-if="!association.target.required"> target is required! </span>
+                          </div>
+                        </b-col>
+
+                        <b-col class="col-4">
+                          <b-form-group label="Reference Name :" class="form-input-label">
+                            <b-form-input
+                                v-model="association.referenceName.$model"
+                                type="text"
+                                placeholder="Enter Reference Name"
+                                @blur="association.referenceName.$touch()"
+                            />
+                            <div v-if="association.referenceName.$error">
+                              <span class="errorMsg" v-if="!association.referenceName.$error.required"> reference name is required! </span>
+                            </div>
+                          </b-form-group>
+                        </b-col>
+
+                        <b-col class="col-4">
+                          <label class="form-input-label">Is Unique item :</label>
+                          <multiselect
+                              :options="uniqueItemDropdownOptions"
+                              placeholder="Select an Option"
+                              track-by="value"
+                              label="label"
+                              :searchable="false"
+                              :allow-empty="false"
+                              :close-on-select="true"
+                              :multiple="false"
+                              v-model="association.uniqueItem.$model"
+                          />
+                          <div v-if="association.uniqueItem.$error">
+                            <span class="errorMsg" v-if="!association.uniqueItem.ensureNotEmpty"> is unique item information is required! </span>
+                          </div>
+                        </b-col>
+
+                        <b-col class="col-6">
+                          <label class="form-input-label">Cordinality :</label>
+                          <multiselect
+                              :options="cordinalityDropdownOptions"
+                              placeholder="Select an Option"
+                              track-by="value"
+                              label="label"
+                              :searchable="false"
+                              :allow-empty="false"
+                              :close-on-select="true"
+                              :multiple="false"
+                              v-model="association.cordinality.$model"
+                          />
+                          <div v-if="association.cordinality.$error">
+                            <span class="errorMsg" v-if="!association.cordinality.ensureNotEmpty"> cordinality is required! </span>
+                          </div>
+                        </b-col>
+
+                        <b-col class="col-6">
+                          <label class="form-input-label">Is Association Bi-Directional :</label>
+                          <multiselect
+                              :options="biDirectionalDropdownOptions"
+                              placeholder="Select an Option"
+                              track-by="value"
+                              label="label"
+                              :searchable="false"
+                              :allow-empty="false"
+                              :close-on-select="true"
+                              :multiple="false"
+                              v-model="association.biDirectional.$model"
+                          />
+                          <div v-if="association.biDirectional.$error">
+                            <span class="errorMsg" v-if="!association.biDirectional.ensureNotEmpty"> direction information is required! </span>
+                          </div>
+                        </b-col>
+
+                        <b-col class="col-6">
+                          <label class="form-input-label">Fetch Type :</label>
+                          <multiselect
+                              :options="fetchTypeDropdownOptions"
+                              placeholder="Select an Option"
+                              track-by="value"
+                              label="label"
+                              :searchable="false"
+                              :allow-empty="false"
+                              :close-on-select="true"
+                              :multiple="false"
+                              v-model="association.fetchType.$model"
+                          />
+                          <div v-if="association.fetchType.$error">
+                            <span class="errorMsg" v-if="!association.fetchType.ensureNotEmpty"> fetch Type is required! </span>
+                          </div>
+                        </b-col>
+
+                        <b-col class="col-6">
+                          <label class="form-input-label">Cascading Type :</label>
+                          <multiselect
+                              :options="cascadeTypeDropdownOptions"
+                              placeholder="Select an Option"
+                              track-by="value"
+                              label="label"
+                              :searchable="false"
+                              :allow-empty="false"
+                              :close-on-select="true"
+                              :multiple="false"
+                              v-model="association.cascadeType.$model"
+                          />
+                          <div v-if="association.cascadeType.$error">
+                            <span class="errorMsg" v-if="!association.cascadeType.ensureNotEmpty"> cascade type is required! </span>
+                          </div>
+                        </b-col>
+
+                      </b-row>
                     </template>
 
                   </tab-content>
 
                   <template slot="footer" slot-scope="entitiesProps">
                     <div class="wizard-footer-left">
-                      <wizard-button  v-if="entitiesProps.activeTabIndex > 0" @click.native="entitiesProps.prevTab()" :style="entitiesProps.fillButtonStyle">Previous</wizard-button>
-                      <wizard-button class="main-wizard-buttons-margin" :style="entitiesProps.fillButtonStyle" v-if="!entitiesProps.isLastStep" @click.native="entitiesProps.nextTab()" > Next </wizard-button>
+                      <wizard-button  v-if="entitiesProps.activeTabIndex > 0" @click.native="entitiesProps.prevTab()" style="background-color: saddlebrown; color: white" :style="entitiesProps.fillButtonStyle">Previous</wizard-button>
+                      <wizard-button class="main-wizard-buttons-margin" style="background-color: saddlebrown; color: white" :style="entitiesProps.fillButtonStyle" v-if="!entitiesProps.isLastStep" @click.native="entitiesProps.nextTab()" > Next </wizard-button>
                     </div>
                     <div class="wizard-footer-right">
-                      <wizard-button class="main-wizard-buttons-margin"  style="background-color: #ffc107; color: white" @click.native="onEntitiesWizardReset()"> Reset </wizard-button>
-                      <wizard-button class="main-wizard-buttons-margin"  style="background-color: #28a745; color: white" v-if="entitiesProps.isLastStep" @click.native="entitiesProps.nextTab()"> Validate </wizard-button>
+                      <wizard-button class="main-wizard-buttons-margin"  style="background-color: saddlebrown; color: white" @click.native="onEntitiesWizardReset()"> Reset </wizard-button>
+                      <wizard-button class="main-wizard-buttons-margin"  style="background-color: saddlebrown; color: white" v-if="entitiesProps.isLastStep" @click.native="entitiesProps.nextTab()"> Validate </wizard-button>
                     </div>
                   </template>
 
@@ -409,14 +533,14 @@
 
         <template slot="footer" slot-scope="props">
           <div class="wizard-footer-left">
-            <wizard-button  v-if="props.activeTabIndex > 0" @click.native="props.prevTab()" :style="props.fillButtonStyle">Previous</wizard-button>
-            <wizard-button class="main-wizard-buttons-margin" :style="props.fillButtonStyle" v-if="!props.isLastStep" @click.native="props.nextTab()" > Next </wizard-button>
+            <wizard-button  v-if="props.activeTabIndex > 0" style="background-color: #17a2b8; color: white" @click.native="props.prevTab()" :style="props.fillButtonStyle">Previous</wizard-button>
+            <wizard-button class="main-wizard-buttons-margin"  style="background-color: #17a2b8; color: white" :style="props.fillButtonStyle" v-if="!props.isLastStep" @click.native="props.nextTab()" > Next </wizard-button>
           </div>
           <div class="wizard-footer-right">
-            <wizard-button class="main-wizard-buttons-margin"  style="background-color: #dc3545; color: white"> Cancel </wizard-button>
-            <wizard-button class="main-wizard-buttons-margin"  style="background-color: #ffc107; color: white" @click.native="onReset()"> Reset </wizard-button>
-            <wizard-button class="main-wizard-buttons-margin"  style="background-color: #28a745; color: white" v-if="props.isLastStep" @click.native="props.nextTab()"> Preview </wizard-button>
-            <wizard-button class="main-wizard-buttons-margin"  style="background-color: #28a745; color: white" v-if="props.isLastStep" @click.native="props.nextTab()" > Download </wizard-button>
+            <wizard-button class="main-wizard-buttons-margin"  style="background-color: #17a2b8; color: white"> Cancel </wizard-button>
+            <wizard-button class="main-wizard-buttons-margin"  style="background-color: #17a2b8; color: white" @click.native="onReset()"> Reset </wizard-button>
+            <wizard-button class="main-wizard-buttons-margin"  style="background-color: #17a2b8; color: white" v-if="props.isLastStep" @click.native="props.nextTab()"> Preview </wizard-button>
+            <wizard-button class="main-wizard-buttons-margin"  style="background-color: #17a2b8; color: white" v-if="props.isLastStep" @click.native="props.nextTab()" > Download </wizard-button>
           </div>
         </template>
 
@@ -459,6 +583,12 @@ export default {
     },
     onEntitiesWizardReset(){
 
+      this.commonEntityWizardReset();
+
+      notyf.open({type: "warning", message: "Form Has Been Reset!"});
+    },
+    commonEntityWizardReset(){
+
       this.$v.tempEntity.$reset();
       this.$refs.entitiesWizard[0].reset();
 
@@ -476,8 +606,6 @@ export default {
         label: 'No Selection',
         value: '',
       };
-
-      notyf.open({type: "warning", message: "Form Has Been Reset!"});
     },
     updateTechnologyVersionDropdown(event){
 
@@ -568,6 +696,19 @@ export default {
 
     },
     isJoinsListValid(){
+
+      this.$v.tempEntity.associations.$touch();
+
+      if( this.$v.tempEntity.associations.$error ) {
+
+        notyf.open({type: "error", message: "Form is Invalid!"});
+
+        return new Promise((resolve) => {
+          resolve(false);
+        });
+
+      }
+
       return new Promise((resolve) => {
         resolve(true);
       });
@@ -652,10 +793,10 @@ export default {
 
       let tempAssociationDropdownList = this.dataModel.entities.filter(entity => {return entity.embeddable === false});
 
-      this.AssociationDropdownList = [];
+      this.associationDropdownList = [];
 
       for (let i = 0; i < tempAssociationDropdownList.length; i++) {
-        this.AssociationDropdownList.push(tempAssociationDropdownList[i].class_name);
+        this.associationDropdownList.push(tempAssociationDropdownList[i].class_name);
       }
 
       let size = this.tempEntity.associations.length;
@@ -912,7 +1053,65 @@ export default {
           value: 'private'
         }
       ],
-      AssociationDropdownList: [
+      associationDropdownList: [
+      ],
+      uniqueItemDropdownOptions: [
+        {
+          label: 'Yes',
+          value: true
+        },
+        {
+          label: 'No',
+          value: false
+        }
+      ],
+      cordinalityDropdownOptions: [
+        {
+          label: 'One to One',
+          value: 'OneToOne'
+        },
+        {
+          label: 'One to Many',
+          value: 'OneToMany'
+        },
+        {
+          label: 'Many to One',
+          value: 'ManyToOne'
+        },
+        {
+          label: 'Many to Many',
+          value: 'ManyToMany'
+        }
+      ],
+      biDirectionalDropdownOptions: [
+        {
+          label: 'Yes',
+          value: true
+        },
+        {
+          label: 'No',
+          value: false
+        }
+      ],
+      fetchTypeDropdownOptions : [
+        {
+          label: 'Lazy',
+          value: 'LAZY'
+        },
+        {
+          label: 'Eager',
+          value: 'EAGER'
+        }
+      ],
+      cascadeTypeDropdownOptions : [
+        {
+          label: 'All',
+          value: 'ALL'
+        },
+        {
+          label: 'Detach',
+          value: 'DETACH'
+        }
       ]
     }
   },
@@ -986,6 +1185,41 @@ export default {
           className: {
             ensureNotEmpty(data, currentRow){
               return currentRow.type.value === 'Object' ? data !== undefined && data!=='' : true;
+            }
+          }
+        }
+      },
+      associations: {
+        $each: {
+          target: {
+            required
+          },
+          uniqueItem: {
+            ensureNotEmpty(data){
+              return data.value !== '';
+            }
+          },
+          cordinality: {
+            ensureNotEmpty(data){
+              return data.value !== '';
+            }
+          },
+          biDirectional: {
+            ensureNotEmpty(data){
+              return data.value !== '';
+            }
+          },
+          referenceName: {
+            required
+          },
+          cascadeType: {
+            ensureNotEmpty(data){
+              return data.value !== '';
+            }
+          },
+          fetchType: {
+            ensureNotEmpty(data){
+              return data.value !== '';
             }
           }
         }
