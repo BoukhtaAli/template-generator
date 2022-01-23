@@ -198,7 +198,7 @@
                                 placeholder="Enter Entity Name"
                             />
                             <div v-if="$v.tempEntity.name.$error">
-                              <span class="errorMsg"> name is required, alphanumeric, and should not be duplicated</span>
+                              <span class="errorMsg"> name is required, should be in valid format, and should not be duplicated</span>
                             </div>
                           </b-form-group>
                         </b-col>
@@ -325,7 +325,7 @@
                             @blur="attribute.name.$touch()"
                         />
                           <div v-if="attribute.name.$error">
-                            <span class="errorMsg" v-if="!attribute.name.$error.required"> name is required! </span>
+                            <span class="errorMsg"> name is required, should be in valid format! </span>
                           </div>
                           </b-form-group>
                         </b-col>
@@ -456,7 +456,7 @@
                                 @blur="association.referenceName.$touch()"
                             />
                             <div v-if="association.referenceName.$error">
-                              <span class="errorMsg" v-if="!association.referenceName.$error.required"> reference name is required! </span>
+                              <span class="errorMsg"> reference name is required and should be in! </span>
                             </div>
                           </b-form-group>
                         </b-col>
@@ -891,7 +891,7 @@ export default {
 
       this.commonEntityWizardReset();
 
-      notyf.open({type: "success", message: "Entity Added To Entities List!"});
+      notyf.open({type: "success", message: "Entities List Updated!"});
     },
     refreshAttributeList(){
       this.tempEntity.attributes = [];
@@ -1231,7 +1231,7 @@ export default {
           return this.dataModel.entities.filter(entity => { return entity.name === data}).length === 0;
         },
         isAlpha(value) {
-          return /^[A-Za-z0-9]+$/i.test(value)
+          return /^[A-Za-z]+$/i.test(value)
         }
       },
       serializable: {
@@ -1250,7 +1250,10 @@ export default {
         required,
         $each: {
           name: {
-            required
+            required,
+            isAlpha(value) {
+              return /^[A-Za-z]+$/i.test(value)
+            }
           },
           modifier: {
             required,
@@ -1291,7 +1294,10 @@ export default {
             }
           },
           referenceName: {
-            required
+            required,
+            isAlpha(value) {
+              return /^[A-Za-z]+$/i.test(value)
+            }
           },
           cascadeType: {
             ensureNotEmpty(data){
