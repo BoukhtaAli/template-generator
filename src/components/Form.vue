@@ -161,27 +161,7 @@
 
             <b-row>
 
-              <b-col class="col-4 text-center my-auto">
-                <label class="sub-wizard-title">Entities Resume</label>
-                <b-table ref="table" striped bordered hover :items="dataModel.entities" :fields="entities_table_fields">
-                  <template #cell(superClass)="data">
-                      {{ data.value !== null && data.value !== undefined  && data.value !== '' ? data.value : '---' }}
-                  </template>
-                  <template #cell(embeddable)="data">
-                    <b-badge :variant="getColor(data.value.value)" class="px-3">
-                      {{ data.value.value }}
-                    </b-badge>
-                  </template>
-                  <template #cell(actions)="data">
-                    <div v-if="dataModel.entities !== null & dataModel.entities.length !== 0">
-                      <i v-for="rowAction in entities_table_row_actions" :key="rowAction.key" :title="rowAction.label" class="table-icons" @click="captureTableEvents(data.item, rowAction.actionEvent)"
-                         :class="`${rowAction.class} ${rowAction.icon}`" />
-                    </div>
-                  </template>
-                </b-table>
-              </b-col>
-
-              <b-col class="col-8">
+              <b-col class="col-md-8 col-sm-12 col-lg-8 pb-5">
                 <p class="sub-wizard-title text-center">Entities Management</p>
 
                 <form-wizard title="" subtitle="" next-button-text="Next" color="saddlebrown" shape="tab" ref="entitiesWizard" @on-complete=addEntityToTable()>
@@ -220,8 +200,6 @@
                             <span class="errorMsg" v-if="!$v.tempEntity.embeddable.$error.required"> embeddable information is required! </span>
                           </div>
                         </b-col>
-                      </b-row>
-                      <b-row>
                         <b-col>
                           <label class="form-input-label">Is Class Serializable :</label>
                           <multiselect
@@ -240,6 +218,8 @@
                             <span class="errorMsg" v-if="!$v.tempEntity.serializable.$error.required"> serializable information is required! </span>
                           </div>
                         </b-col>
+                      </b-row>
+                      <b-row>
                         <b-col>
                           <label class="form-input-label">Implement Equals & Hashcode Methods :</label>
                           <multiselect
@@ -258,9 +238,7 @@
                             <span class="errorMsg" v-if="!$v.tempEntity.equalsAndHashCode.$error.required"> equals & hashcode information is required! </span>
                           </div>
                         </b-col>
-                      </b-row>
-                      <b-row class="mt-1">
-                        <b-col class="col-6">
+                        <b-col>
                           <label class="form-input-label">Super Class :</label>
                           <multiselect
                               :options="superClassOptions"
@@ -275,7 +253,7 @@
                               @input="updateProjectSuperClassDropdownList($event)"
                           />
                         </b-col>
-                        <b-col v-if="selectedSuperClassType !== undefined && selectedSuperClassType.value !== 'PROJECT' && selectedSuperClassType.value !== ''" class="col-6">
+                        <b-col v-if="selectedSuperClassType !== undefined && selectedSuperClassType.value !== 'PROJECT' && selectedSuperClassType.value !== ''">
                           <b-form-group label="Super Class Name :" class="form-input-label">
                             <b-form-input
                                 v-model="tempEntity.superClass"
@@ -319,14 +297,14 @@
                         <b-col>
                           <b-form-group label="Name :" class="form-input-label">
                             <b-form-input
-                            v-model="attribute.name.$model"
-                            type="text"
-                            placeholder="Enter Attribute Name"
-                            @blur="attribute.name.$touch()"
-                        />
-                          <div v-if="attribute.name.$error">
-                            <span class="errorMsg"> name is required, should be in valid format! </span>
-                          </div>
+                                v-model="attribute.name.$model"
+                                type="text"
+                                placeholder="Enter Attribute Name"
+                                @blur="attribute.name.$touch()"
+                            />
+                            <div v-if="attribute.name.$error">
+                              <span class="errorMsg"> name is required, should be in valid format! </span>
+                            </div>
                           </b-form-group>
                         </b-col>
                         <b-col>
@@ -570,6 +548,27 @@
                 </form-wizard>
 
               </b-col>
+
+              <b-col class="col-md-4 col-sm-12 col-lg-4 text-center mx-auto my-auto pb-5">
+                <label class="sub-wizard-title">Entities Resume</label>
+                <b-table ref="table" striped bordered hover :items="dataModel.entities" :fields="entities_table_fields">
+                  <template #cell(superClass)="data">
+                      {{ data.value !== null && data.value !== undefined  && data.value !== '' ? data.value : '---' }}
+                  </template>
+                  <template #cell(embeddable)="data">
+                    <b-badge :variant="getColor(data.value.value)" class="px-3">
+                      {{ data.value.value }}
+                    </b-badge>
+                  </template>
+                  <template #cell(actions)="data">
+                    <div v-if="dataModel.entities !== null & dataModel.entities.length !== 0">
+                      <i v-for="rowAction in entities_table_row_actions" :key="rowAction.key" :title="rowAction.label" class="table-icons" @click="captureTableEvents(data.item, rowAction.actionEvent)"
+                         :class="`${rowAction.class} ${rowAction.icon}`" />
+                    </div>
+                  </template>
+                </b-table>
+              </b-col>
+
             </b-row>
 
           </template>
