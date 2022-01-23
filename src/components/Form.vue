@@ -600,9 +600,11 @@
 <script>
 import {required,requiredIf} from 'vuelidate/lib/validators';
 import {notyf} from "@/notyf";
+import ModalMixin from "@/mixins/ModalMixin";
 
 export default {
   name: "Form",
+  mixins: [ModalMixin],
   props: {
 
   },
@@ -640,6 +642,7 @@ export default {
       this.$refs.entitiesWizard[0].reset();
 
       this.tempEntity = {
+        id: null,
         name: '',
         serializable: '',
         superClass: '',
@@ -762,20 +765,27 @@ export default {
     },
     captureTableEvents(data, event){
 
-      console.log(data);
+      let temp = {...data};
 
       switch (event){
         case 'editEntity' :
-          console.log('Edit Event!');
+          this.tempEntity = {...temp};
+          break;
+        case 'removeEntity' :
+          this.showMsgBox('delete').then(
+              value => {
+                if(value){
+                  this.dataModel.entities =  this.dataModel.entities.filter(function(ele){ return ele.name !== temp.name });
+                  notyf.open({type: "success", message: "Entities List Updated!"});
+                }
+              }
+          );
           break;
         case 'cloneEntity' :
           console.log('Clone Event!');
           break;
         case 'displayEntity' :
           console.log('Display Event!');
-          break;
-        case 'removeEntity' :
-          console.log('Remove Event!');
           break;
       }
     },
@@ -887,6 +897,8 @@ export default {
 
       let size = this.dataModel.entities.length;
 
+      this.tempEntity.id = size;
+
       this.dataModel.entities.splice(size, 0, this.tempEntity);
 
       this.commonEntityWizardReset();
@@ -917,6 +929,7 @@ export default {
         ]
       },
       tempEntity: {
+        id:null,
         name: '',
         serializable: '',
         superClass: '',
@@ -1228,7 +1241,7 @@ export default {
       name: {
         required,
         ensureNotDuplicated(data){
-          return this.dataModel.entities.filter(entity => { return entity.name === data}).length === 0;
+          return this.dataModel.entities.filter(entity => { return entity.name === data && entity.id !== this.tempEntity.id}).length === 0;
         },
         isAlpha(value) {
           return /^[A-Za-z]+$/i.test(value)
