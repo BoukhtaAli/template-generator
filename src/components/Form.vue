@@ -778,7 +778,7 @@ export default {
                 if(value){
 
                   if(temp.id === this.tempEntity.id){
-                    notyf.open({type: "error", message: "Cannot Delete Object Under Modification!"});
+                    notyf.open({type: "error", message: "Object Under Modification..., Reset Entities Form and Retry!"});
                   }else {
                     this.dataModel.entities =  this.dataModel.entities.filter(function(ele){ return ele.name !== temp.name });
                     notyf.open({type: "success", message: "Entities List Updated!"});
