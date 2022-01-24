@@ -162,30 +162,39 @@
             <b-row>
 
               <b-col class="col-md-12 col-sm-12 col-lg-4 text-center mx-auto pb-5">
-                <label class="sub-wizard-title">Entities Resume</label>
-                <b-table ref="table" striped bordered hover :items="dataModel.entities" :fields="entities_table_fields">
-                  <template #cell(superClass)="data">
+                <b-row>
+                  <b-col class="col-11" :class="[ isWizardEnabled ? 'cursor-pointer' : 'cursor-not-allowed']">
+                    <label class="sub-wizard-title">Entities Resume</label>
+                  </b-col>
+                  <b-col class="text-right text-success cursor-pointer" v-if="!isWizardEnabled">
+                    <i title="add new Entity" class="fa fa-plus-circle" style="font-size: 18px" @click="isWizardEnabled = !isWizardEnabled"/>
+                  </b-col>
+                </b-row>
+                <div :class="[ isWizardEnabled ? 'cursor-not-allowed' : '']">
+                  <b-table :class="[ isWizardEnabled ? 'disable_table' : '']" ref="table" striped bordered hover :items="dataModel.entities" :fields="entities_table_fields">
+                    <template #cell(superClass)="data">
                       {{ data.value !== null && data.value !== undefined  && data.value !== '' ? data.value : '---' }}
-                  </template>
-                  <template #cell(embeddable)="data">
-                    <b-badge :variant="getColor(data.value)" class="px-3">
-                      {{ data.value }}
-                    </b-badge>
-                  </template>
-                  <template #cell(actions)="data">
-                    <div v-if="dataModel.entities !== null & dataModel.entities.length !== 0">
-                      <i v-for="rowAction in entities_table_row_actions" :key="rowAction.key" :title="rowAction.label" class="table-icons" @click="captureTableEvents(data.item, rowAction.actionEvent)"
-                         :class="`${rowAction.class} ${rowAction.icon}`" />
-                    </div>
-                  </template>
-                </b-table>
+                    </template>
+                    <template #cell(embeddable)="data">
+                      <b-badge :variant="getColor(data.value)" class="px-3">
+                        {{ data.value }}
+                      </b-badge>
+                    </template>
+                    <template #cell(actions)="data">
+                      <div v-if="dataModel.entities !== null & dataModel.entities.length !== 0">
+                        <i v-for="rowAction in entities_table_row_actions" :key="rowAction.key" :title="rowAction.label" class="table-icons" @click="captureTableEvents(data.item, rowAction.actionEvent)"
+                           :class="`${rowAction.class} ${rowAction.icon}`"/>
+                      </div>
+                    </template>
+                  </b-table>
+                </div>
               </b-col>
 
-              <b-col class="col-md-12 col-sm-12 col-lg-8 pb-5 border-left">
+              <b-col class="col-md-12 col-sm-12 col-lg-8 pb-5 border-left" :class="[ isWizardEnabled ? '' : 'cursor-not-allowed']">
 
                 <p class="sub-wizard-title text-center">Entities Management</p>
 
-                <form-wizard title="" subtitle="" next-button-text="Next" color="saddlebrown" shape="tab" ref="entitiesWizard" @on-complete=addEntityToTable()>
+                <form-wizard :class="[ isWizardEnabled ? '' : 'disable_table']" title="" subtitle="" next-button-text="Next" color="saddlebrown" shape="tab" ref="entitiesWizard" @on-complete=addEntityToTable()>
                   <tab-content v-for="(entitiesTab,entitiesIndex) in entitiesWizardTabs" :key="entitiesIndex" :title="entitiesTab.title" :icon="entitiesTab.icon" :before-change="entitiesTab.beforeChange">
 
                     <template v-if="entitiesTab.name==='generalEntitiesSettings'">
@@ -647,6 +656,8 @@ export default {
         label: 'No Selection',
         value: '',
       };
+
+      this.isWizardEnabled =!this.isWizardEnabled;
     },
     updateTechnologyVersionDropdown(event){
 
@@ -762,6 +773,10 @@ export default {
         case 'editEntity' :
           this.commonEntityWizardReset();
           this.tempEntity = {...temp};
+
+          if(!this.isWizardEnabled){
+            this.isWizardEnabled =!this.isWizardEnabled;
+          }
           break;
         case 'removeEntity' :
           this.showMsgBox('delete').then(
@@ -933,7 +948,6 @@ export default {
 
               this.commonEntityWizardReset();
               notyf.open({type: "success", message: "Entities List Updated!"});
-
             }
           }
       );
@@ -947,6 +961,7 @@ export default {
   },
   data () {
     return {
+      isWizardEnabled: false,
       dataModel: {
         projectName: '',
         projectDescription: '',
@@ -1335,4 +1350,15 @@ export default {
   cursor: pointer;
 }
 
+.disable_table{
+  pointer-events: none;
+}
+
+.cursor-not-allowed {
+  cursor: not-allowed;
+}
+
+.cursor-pointer{
+  cursor: pointer;
+}
 </style>
