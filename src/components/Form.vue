@@ -161,7 +161,27 @@
 
             <b-row>
 
-              <b-col class="col-md-12 col-sm-12 col-lg-8 pb-5 border-right">
+              <b-col class="col-md-12 col-sm-12 col-lg-4 text-center mx-auto pb-5">
+                <label class="sub-wizard-title">Entities Resume</label>
+                <b-table ref="table" striped bordered hover :items="dataModel.entities" :fields="entities_table_fields">
+                  <template #cell(superClass)="data">
+                      {{ data.value !== null && data.value !== undefined  && data.value !== '' ? data.value : '---' }}
+                  </template>
+                  <template #cell(embeddable)="data">
+                    <b-badge :variant="getColor(data.value)" class="px-3">
+                      {{ data.value }}
+                    </b-badge>
+                  </template>
+                  <template #cell(actions)="data">
+                    <div v-if="dataModel.entities !== null & dataModel.entities.length !== 0">
+                      <i v-for="rowAction in entities_table_row_actions" :key="rowAction.key" :title="rowAction.label" class="table-icons" @click="captureTableEvents(data.item, rowAction.actionEvent)"
+                         :class="`${rowAction.class} ${rowAction.icon}`" />
+                    </div>
+                  </template>
+                </b-table>
+              </b-col>
+
+              <b-col class="col-md-12 col-sm-12 col-lg-8 pb-5 border-left">
 
                 <p class="sub-wizard-title text-center">Entities Management</p>
 
@@ -182,62 +202,6 @@
                               <span class="errorMsg"> name is required, should be in valid format, and should not be duplicated in Entities List</span>
                             </div>
                           </b-form-group>
-                        </b-col>
-                        <b-col>
-                          <label class="form-input-label">Is Class Embeddable :</label>
-                          <multiselect
-                              :options="embeddableOptions"
-                              placeholder="Select an Option"
-                              track-by="value"
-                              label="label"
-                              :searchable="false"
-                              :allow-empty="false"
-                              :close-on-select="true"
-                              :multiple="false"
-                              v-model="tempEntity.embeddable"
-                              @blur="$v.tempEntity.embeddable.$touch()"
-                          />
-                          <div v-if="$v.tempEntity.embeddable.$error">
-                            <span class="errorMsg" v-if="!$v.tempEntity.embeddable.$error.required"> embeddable information is required! </span>
-                          </div>
-                        </b-col>
-                        <b-col>
-                          <label class="form-input-label">Is Class Serializable :</label>
-                          <multiselect
-                              :options="serializableOptions"
-                              placeholder="Select an Option"
-                              track-by="value"
-                              label="label"
-                              :searchable="false"
-                              :allow-empty="false"
-                              :close-on-select="true"
-                              :multiple="false"
-                              v-model="tempEntity.serializable"
-                              @blur="$v.tempEntity.serializable.$touch()"
-                          />
-                          <div v-if="$v.tempEntity.serializable.$error">
-                            <span class="errorMsg" v-if="!$v.tempEntity.serializable.$error.required"> serializable information is required! </span>
-                          </div>
-                        </b-col>
-                      </b-row>
-                      <b-row>
-                        <b-col>
-                          <label class="form-input-label">Implement Equals & Hashcode :</label>
-                          <multiselect
-                              :options="equalsHashCodeOptions"
-                              placeholder="Select an Option"
-                              track-by="value"
-                              label="label"
-                              :searchable="false"
-                              :allow-empty="false"
-                              :close-on-select="true"
-                              :multiple="false"
-                              v-model="tempEntity.equalsAndHashCode"
-                              @blur="$v.tempEntity.equalsAndHashCode.$touch()"
-                          />
-                          <div v-if="$v.tempEntity.equalsAndHashCode.$error">
-                            <span class="errorMsg" v-if="!$v.tempEntity.equalsAndHashCode.$error.required"> equals & hashcode information is required! </span>
-                          </div>
                         </b-col>
                         <b-col>
                           <label class="form-input-label">Super Class :</label>
@@ -280,6 +244,50 @@
                           />
                           <div v-if="$v.tempEntity.superClass.$error">
                             <span class="errorMsg" v-if="!$v.tempEntity.superClass.$error.required"> super class is required! </span>
+                          </div>
+                        </b-col>
+                      </b-row>
+                      <b-row>
+                        <b-col>
+                          <label class="form-input-label">Is Class Embeddable :</label>
+                          <b-form-checkbox
+                              v-model="tempEntity.embeddable"
+                              name="embeddable-checkbox"
+                              :value="true"
+                              :unchecked-value="false"
+                          >
+                            <span> {{tempEntity.embeddable ? 'Yes' : 'No'}} </span>
+                          </b-form-checkbox>
+                          <div v-if="$v.tempEntity.embeddable.$error">
+                            <span class="errorMsg" v-if="!$v.tempEntity.embeddable.$error.required"> embeddable information is required! </span>
+                          </div>
+                        </b-col>
+                        <b-col>
+                          <label class="form-input-label">Is Class Serializable :</label>
+                          <b-form-checkbox
+                              v-model="tempEntity.serializable"
+                              name="serializable-checkbox"
+                              :value="true"
+                              :unchecked-value="false"
+                          >
+                            <span> {{tempEntity.serializable ? 'Yes' : 'No'}} </span>
+                          </b-form-checkbox>
+                          <div v-if="$v.tempEntity.serializable.$error">
+                            <span class="errorMsg" v-if="!$v.tempEntity.serializable.$error.required"> serializable information is required! </span>
+                          </div>
+                        </b-col>
+                        <b-col>
+                          <label class="form-input-label">Implement Equals & Hashcode :</label>
+                          <b-form-checkbox
+                              v-model="tempEntity.equalsAndHashCode"
+                              name="equals-hashcode-checkbox"
+                              :value="true"
+                              :unchecked-value="false"
+                          >
+                            <span> {{tempEntity.equalsAndHashCode ? 'Yes' : 'No'}} </span>
+                          </b-form-checkbox>
+                          <div v-if="$v.tempEntity.equalsAndHashCode.$error">
+                            <span class="errorMsg" v-if="!$v.tempEntity.equalsAndHashCode.$error.required"> equals & hashcode information is required! </span>
                           </div>
                         </b-col>
                       </b-row>
@@ -414,7 +422,7 @@
                       </b-row>
 
                       <b-row v-for="(association, index) in $v.tempEntity.associations.$each.$iter" :key="index" >
-                        <b-col class="col-1 mt-4 pt-1">
+                        <b-col class="col-1 mt-4 pt-1 text-center">
                           <b-form-group label=" " class="form-input-label">
                             <i class="fa fa-minus table-icons" style="color: red !important;" title="delete Association" @click="tempEntity.associations.splice(parseInt(index),1)"/>
                           </b-form-group>
@@ -450,24 +458,6 @@
                         </b-col>
 
                         <b-col class="col-3">
-                          <label class="form-input-label">Is Unique item :</label>
-                          <multiselect
-                              :options="uniqueItemDropdownOptions"
-                              placeholder="Select an Option"
-                              track-by="value"
-                              label="label"
-                              :searchable="false"
-                              :allow-empty="false"
-                              :close-on-select="true"
-                              :multiple="false"
-                              v-model="association.uniqueItem.$model"
-                          />
-                          <div v-if="association.uniqueItem.$error">
-                            <span class="errorMsg" v-if="!association.uniqueItem.ensureNotEmpty"> is unique item information is required! </span>
-                          </div>
-                        </b-col>
-
-                        <b-col class="col-6">
                           <label class="form-input-label">Cordinality :</label>
                           <multiselect
                               :options="cordinalityDropdownOptions"
@@ -482,24 +472,6 @@
                           />
                           <div v-if="association.cordinality.$error">
                             <span class="errorMsg" v-if="!association.cordinality.ensureNotEmpty"> cordinality is required! </span>
-                          </div>
-                        </b-col>
-
-                        <b-col class="col-6">
-                          <label class="form-input-label">Is Association Bi-Directional :</label>
-                          <multiselect
-                              :options="biDirectionalDropdownOptions"
-                              placeholder="Select an Option"
-                              track-by="value"
-                              label="label"
-                              :searchable="false"
-                              :allow-empty="false"
-                              :close-on-select="true"
-                              :multiple="false"
-                              v-model="association.biDirectional.$model"
-                          />
-                          <div v-if="association.biDirectional.$error">
-                            <span class="errorMsg" v-if="!association.biDirectional.ensureNotEmpty"> direction information is required! </span>
                           </div>
                         </b-col>
 
@@ -539,6 +511,36 @@
                           </div>
                         </b-col>
 
+                        <b-col class="col-6 mt-3">
+                          <label class="form-input-label">Is Unique item :</label>
+                          <b-form-checkbox
+                              v-model="association.uniqueItem.$model"
+                              name="uniqueItem-checkbox"
+                              :value="true"
+                              :unchecked-value="false"
+                          >
+                            <span> {{association.uniqueItem.$model ? 'Yes' : 'No'}} </span>
+                          </b-form-checkbox>
+                          <div v-if="association.uniqueItem.$error">
+                            <span class="errorMsg" v-if="!association.uniqueItem.required"> is unique item information is required! </span>
+                          </div>
+                        </b-col>
+
+                        <b-col class="col-6 mt-3">
+                          <label class="form-input-label">Is Association Bi-Directional :</label>
+                          <b-form-checkbox
+                              v-model="association.biDirectional.$model"
+                              name="biDirectional-checkbox"
+                              :value="true"
+                              :unchecked-value="false"
+                          >
+                            <span> {{association.biDirectional.$model ? 'Yes' : 'No'}} </span>
+                          </b-form-checkbox>
+                          <div v-if="association.biDirectional.$error">
+                            <span class="errorMsg" v-if="!association.biDirectional.required"> direction information is required! </span>
+                          </div>
+                        </b-col>
+
                       </b-row>
                     </template>
 
@@ -557,26 +559,6 @@
 
                 </form-wizard>
 
-              </b-col>
-
-              <b-col class="col-md-12 col-sm-12 col-lg-4 text-center mx-auto my-auto pb-5">
-                <label class="sub-wizard-title">Entities Resume</label>
-                <b-table ref="table" striped bordered hover :items="dataModel.entities" :fields="entities_table_fields">
-                  <template #cell(superClass)="data">
-                      {{ data.value !== null && data.value !== undefined  && data.value !== '' ? data.value : '---' }}
-                  </template>
-                  <template #cell(embeddable)="data">
-                    <b-badge :variant="getColor(data.value.value)" class="px-3">
-                      {{ data.value.value }}
-                    </b-badge>
-                  </template>
-                  <template #cell(actions)="data">
-                    <div v-if="dataModel.entities !== null & dataModel.entities.length !== 0">
-                      <i v-for="rowAction in entities_table_row_actions" :key="rowAction.key" :title="rowAction.label" class="table-icons" @click="captureTableEvents(data.item, rowAction.actionEvent)"
-                         :class="`${rowAction.class} ${rowAction.icon}`" />
-                    </div>
-                  </template>
-                </b-table>
               </b-col>
 
             </b-row>
@@ -653,10 +635,10 @@ export default {
       this.tempEntity = {
         id: null,
         name: '',
-        serializable: '',
+        serializable: false,
         superClass: '',
-        equalsAndHashCode:'',
-        embeddable: '',
+        equalsAndHashCode:false,
+        embeddable: false,
         attributes: [],
         associations: []
       };
@@ -796,13 +778,13 @@ export default {
 
                       let currentObject = this.dataModel.entities[i];
 
-                      if(temp.embeddable.value === true){
+                      if(temp.embeddable === true){
                         for(let j=0; j< currentObject.attributes.length; j++){
                           if(currentObject.attributes[j].type.value === temp.name){
                             isUsed++;
                           }
                         }
-                      } else if (temp.embeddable.value === false){
+                      } else if (temp.embeddable === false){
 
                         if(currentObject.superClass === temp.name){
                           isUsed++;
@@ -847,7 +829,7 @@ export default {
       switch (event.value){
         case 'PROJECT':
           this.superClassDropdownList = [];
-          tempSuperClassDropdownList = this.dataModel.entities.filter(entity => {return entity.embeddable.value === false});
+          tempSuperClassDropdownList = this.dataModel.entities.filter(entity => {return entity.embeddable === false});
           for (let i = 0; i < tempSuperClassDropdownList.length; i++) {
             this.superClassDropdownList.push(tempSuperClassDropdownList[i].name);
           }
@@ -871,7 +853,7 @@ export default {
       switch (event.value){
         case 'Object':
           this.superClassEmbeddedDropdownList = [];
-          tempSuperClassDropdownList = this.dataModel.entities.filter(entity => {return entity.embeddable.value === true});
+          tempSuperClassDropdownList = this.dataModel.entities.filter(entity => {return entity.embeddable === true});
           for (let i = 0; i < tempSuperClassDropdownList.length; i++) {
             this.superClassEmbeddedDropdownList.push({
               label : tempSuperClassDropdownList[i].name,
@@ -902,7 +884,7 @@ export default {
     },
     addAssociation(){
 
-      let tempAssociationDropdownList = this.dataModel.entities.filter(entity => {return entity.embeddable.value === false});
+      let tempAssociationDropdownList = this.dataModel.entities.filter(entity => {return entity.embeddable === false});
 
       this.associationDropdownList = [];
 
@@ -915,18 +897,12 @@ export default {
       this.tempEntity.associations.push({
         id: size,
         target: '',
-        uniqueItem: {
-          label: '',
-          value : ''
-        },
+        uniqueItem: false,
         cordinality : {
           label: '',
           value : ''
         },
-        biDirectional: {
-          label: '',
-          value : ''
-        },
+        biDirectional: false,
         referenceName: '',
         fetchType: {
           label: '',
@@ -988,10 +964,10 @@ export default {
       tempEntity: {
         id:null,
         name: '',
-        serializable: '',
+        serializable: false,
         superClass: '',
-        equalsAndHashCode:'',
-        embeddable: '',
+        equalsAndHashCode:false,
+        embeddable: false,
         attributes: [],
         associations : []
       },
@@ -1055,56 +1031,12 @@ export default {
           label: 'Edit',
           actionEvent: 'editEntity'
         },
-        // {
-        //   key: 'clone',
-        //   icon: 'fa fa-copy',
-        //   class: 'text-info',
-        //   label: 'Clone',
-        //   actionEvent: 'cloneEntity'
-        // },
-        // {
-        //   key: 'display',
-        //   icon: 'fa fa-tv',
-        //   class: 'text-secondary',
-        //   label: 'Details',
-        //   actionEvent: 'displayEntity'
-        // },
         {
           key: 'remove',
           icon: 'fa fa-minus',
           class: 'text-danger',
           label: 'Remove',
           actionEvent: 'removeEntity'
-        }
-      ],
-      serializableOptions : [
-        {
-          label: 'Yes',
-          value: true
-        },
-        {
-          label: 'No',
-          value: false
-        }
-      ],
-      equalsHashCodeOptions : [
-        {
-          label: 'Yes',
-          value: true
-        },
-        {
-          label: 'No',
-          value: false
-        }
-      ],
-      embeddableOptions : [
-        {
-          label: 'Yes',
-          value: true
-        },
-        {
-          label: 'No',
-          value: false
         }
       ],
       superClassOptions: [
@@ -1201,16 +1133,6 @@ export default {
       ],
       associationDropdownList: [
       ],
-      uniqueItemDropdownOptions: [
-        {
-          label: 'Yes',
-          value: true
-        },
-        {
-          label: 'No',
-          value: false
-        }
-      ],
       cordinalityDropdownOptions: [
         {
           label: 'One to One',
@@ -1227,16 +1149,6 @@ export default {
         {
           label: 'Many to Many',
           value: 'ManyToMany'
-        }
-      ],
-      biDirectionalDropdownOptions: [
-        {
-          label: 'Yes',
-          value: true
-        },
-        {
-          label: 'No',
-          value: false
         }
       ],
       fetchTypeDropdownOptions : [
@@ -1349,9 +1261,7 @@ export default {
             required
           },
           uniqueItem: {
-            ensureNotEmpty(data){
-              return data.value !== '';
-            }
+            required
           },
           cordinality: {
             ensureNotEmpty(data){
@@ -1359,9 +1269,7 @@ export default {
             }
           },
           biDirectional: {
-            ensureNotEmpty(data){
-              return data.value !== '';
-            }
+            required
           },
           referenceName: {
             required,
@@ -1405,7 +1313,7 @@ export default {
 }
 
 .errorMsg {
-  color: #17a2b8;
+  color: darkred;
   font-size: 12px;
   font-weight: bold;
 }
