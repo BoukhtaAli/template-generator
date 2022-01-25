@@ -152,13 +152,13 @@
 
             <b-row>
 
-              <b-col class="col-md-12 col-sm-12 col-lg-4 text-center mx-auto pb-5">
+              <b-col class="col-md-4 col-sm-12 col-lg-4 text-center mx-auto pb-5">
                 <b-row>
                   <b-col class="col-11" :class="[ isWizardEnabled ? 'cursor-pointer' : 'cursor-not-allowed']">
                     <label class="sub-wizard-title">Entities Resume</label>
                   </b-col>
                   <b-col class="text-right text-success cursor-pointer" v-if="!isWizardEnabled">
-                    <i title="add new Entity" class="fa fa-plus-circle" style="font-size: 20px" @click="isWizardEnabled = !isWizardEnabled"/>
+                    <i title="add new Entity" class="fa fa-plus-circle" style="font-size: 20px" @click="swipeWizardState()"/>
                   </b-col>
                 </b-row>
                 <div :class="[ isWizardEnabled ? 'cursor-not-allowed' : '']">
@@ -181,7 +181,7 @@
                 </div>
               </b-col>
 
-              <b-col class="col-md-12 col-sm-12 col-lg-8 pb-5 border-left" :class="[ isWizardEnabled ? '' : 'cursor-not-allowed']">
+              <b-col class="col-md-8 col-sm-12 col-lg-8 pb-5 border-left" :class="[ isWizardEnabled ? '' : 'cursor-not-allowed']">
 
                 <p class="sub-wizard-title text-center">Entities Management</p>
 
@@ -667,7 +667,7 @@ export default {
         value: '',
       };
 
-      this.isWizardEnabled =!this.isWizardEnabled;
+      this.swipeWizardState();
     },
     isGeneralSettingsValid(){
 
@@ -766,14 +766,23 @@ export default {
     captureTableEvents(data, event){
 
       let temp = {...data};
+      temp.attributes = [];
+      temp.associations = [];
+
+      for(let i=0; i<data.attributes.length; i++){
+        temp.attributes.push(data.attributes[i]);
+      }
+
+      for(let i=0; i<data.associations.length; i++){
+        temp.associations.push(data.associations[i]);
+      }
 
       switch (event){
         case 'editEntity' :
           this.commonEntityWizardReset();
           this.tempEntity = {...temp};
-
           if(!this.isWizardEnabled){
-            this.isWizardEnabled =!this.isWizardEnabled;
+            this.swipeWizardState();
           }
           break;
         case 'removeEntity' :
@@ -940,6 +949,9 @@ export default {
     },
     refreshAssociationList(){
       this.tempEntity.associations = [];
+    },
+    swipeWizardState(){
+      this.isWizardEnabled = ! this.isWizardEnabled;
     }
   },
   data () {
