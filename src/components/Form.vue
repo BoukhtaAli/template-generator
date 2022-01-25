@@ -1,21 +1,16 @@
 <template>
-  <b-card class="mx-auto rounded shadow p-3 justify-content-center" bg-variant="light">
-
-    <template #header>
-      <i class="fa fa-archway card-title-icon" /> <span class="card-title"> DATA ENROLLMENT ACTIVITY </span>
-    </template>
+  <b-card class="mx-auto rounded shadow justify-content-center" bg-variant="light">
 
     <b-card-text>
+      <form-wizard class="no-padding-or-margin" title="" subtitle="" next-button-text="Next" color="#17a2b8" shape="tab" ref="mainWizard">
 
-      <form-wizard title="" subtitle="" next-button-text="Next" color="#17a2b8" shape="tab" ref="mainWizard">
-
-        <tab-content v-for="(tab,index) in mainWizardTabs" :key="index" :title="tab.title" :icon="tab.icon" :before-change="tab.beforeChange" class="border-bottom">
+        <tab-content v-for="(tab,index) in mainWizardTabs" :key="index" :title="tab.title" :icon="tab.icon" :before-change="tab.beforeChange" class="border-bottom pb-3">
 
           <!--    General Settings   -->
 
           <template v-if="tab.name==='generalSettings'">
 
-            <b-row class="pb-5">
+            <b-row>
               <b-col class="col-6">
                 <b-form-group label="Project Name :" class="form-input-label">
                   <b-form-input
@@ -107,13 +102,13 @@
                     track-by="value"
                     label="label"
                     placeholder="Select Technology"
+                    selectLabel=""
+                    deselectLabel=""
                     :searchable="true"
                     :allow-empty="false"
                     :close-on-select="true"
                     :multiple="false"
                     v-model="dataModel.technology"
-                    @input="updateTechnologyVersionDropdown($event)"
-                    @blur="$v.dataModel.technology.$touch()"
                 />
                 <div v-if="$v.dataModel.technology.$error">
                   <span class="errorMsg" v-if="!$v.dataModel.technology.$error.required"> technology is required! </span>
@@ -121,15 +116,11 @@
               </b-col>
               <b-col class="col-3" v-if="dataModel.technology">
                 <label class="form-input-label">Select Technology Version :</label>
-                <multiselect
-                    :options="technologiesVersionDropdownsList"
-                    placeholder="Select Version"
-                    :searchable="true"
-                    :allow-empty="false"
-                    :close-on-select="true"
-                    :multiple="false"
+                <b-form-input
                     v-model="dataModel.technologyVersion"
                     @blur="$v.dataModel.technologyVersion.$touch()"
+                    type="text"
+                    placeholder="Enter Technology Version"
                 />
                 <div v-if="$v.dataModel.technologyVersion.$error">
                   <span class="errorMsg" v-if="!$v.dataModel.technologyVersion.$error.required"> technology version is required! </span>
@@ -167,7 +158,7 @@
                     <label class="sub-wizard-title">Entities Resume</label>
                   </b-col>
                   <b-col class="text-right text-success cursor-pointer" v-if="!isWizardEnabled">
-                    <i title="add new Entity" class="fa fa-plus-circle" style="font-size: 18px" @click="isWizardEnabled = !isWizardEnabled"/>
+                    <i title="add new Entity" class="fa fa-plus-circle" style="font-size: 20px" @click="isWizardEnabled = !isWizardEnabled"/>
                   </b-col>
                 </b-row>
                 <div :class="[ isWizardEnabled ? 'cursor-not-allowed' : '']">
@@ -195,7 +186,7 @@
                 <p class="sub-wizard-title text-center">Entities Management</p>
 
                 <form-wizard :class="[ isWizardEnabled ? '' : 'disable_table']" title="" subtitle="" next-button-text="Next" color="saddlebrown" shape="tab" ref="entitiesWizard" @on-complete=addEntityToTable()>
-                  <tab-content v-for="(entitiesTab,entitiesIndex) in entitiesWizardTabs" :key="entitiesIndex" :title="entitiesTab.title" :icon="entitiesTab.icon" :before-change="entitiesTab.beforeChange">
+                  <tab-content class="pb-5" v-for="(entitiesTab,entitiesIndex) in entitiesWizardTabs" :key="entitiesIndex" :title="entitiesTab.title" :icon="entitiesTab.icon" :before-change="entitiesTab.beforeChange">
 
                     <template v-if="entitiesTab.name==='generalEntitiesSettings'">
                       <b-row>
@@ -217,6 +208,8 @@
                           <multiselect
                               :options="superClassOptions"
                               placeholder="Select an Option"
+                              selectLabel=""
+                              deselectLabel=""
                               track-by="value"
                               label="label"
                               :searchable="false"
@@ -245,6 +238,8 @@
                           <multiselect
                               :options="superClassDropdownList"
                               placeholder="Select an Option"
+                              selectLabel=""
+                              deselectLabel=""
                               :searchable="false"
                               :allow-empty="false"
                               :close-on-select="true"
@@ -257,47 +252,41 @@
                         </b-col>
                       </b-row>
                       <b-row>
-                        <b-col>
-                          <label class="form-input-label">Is Class Embeddable :</label>
+                        <b-col class="col-lg-3 col-md-3 col-sm-12">
+                          <span class="form-input-label"></span>
                           <b-form-checkbox
                               v-model="tempEntity.embeddable"
+                              class="form-input-label"
                               name="embeddable-checkbox"
                               :value="true"
                               :unchecked-value="false"
-                          >
-                            <span> {{tempEntity.embeddable ? 'Yes' : 'No'}} </span>
+                          > Persistable
                           </b-form-checkbox>
-                          <div v-if="$v.tempEntity.embeddable.$error">
-                            <span class="errorMsg" v-if="!$v.tempEntity.embeddable.$error.required"> embeddable information is required! </span>
-                          </div>
+                          <span> {{tempEntity.embeddable ? 'Yes' : 'No'}} </span>
                         </b-col>
-                        <b-col>
-                          <label class="form-input-label">Is Class Serializable :</label>
+                        <b-col class="col-lg-3 col-md-3 col-sm-12">
                           <b-form-checkbox
                               v-model="tempEntity.serializable"
                               name="serializable-checkbox"
+                              class="form-input-label"
                               :value="true"
                               :unchecked-value="false"
                           >
-                            <span> {{tempEntity.serializable ? 'Yes' : 'No'}} </span>
+                            Serializable
                           </b-form-checkbox>
-                          <div v-if="$v.tempEntity.serializable.$error">
-                            <span class="errorMsg" v-if="!$v.tempEntity.serializable.$error.required"> serializable information is required! </span>
-                          </div>
+                          <span> {{tempEntity.serializable ? 'Yes' : 'No'}} </span>
                         </b-col>
-                        <b-col>
-                          <label class="form-input-label">Implement Equals & Hashcode :</label>
+                        <b-col class="col-lg-6 col-md-6 col-sm-12">
                           <b-form-checkbox
                               v-model="tempEntity.equalsAndHashCode"
                               name="equals-hashcode-checkbox"
+                              class="form-input-label"
                               :value="true"
                               :unchecked-value="false"
                           >
-                            <span> {{tempEntity.equalsAndHashCode ? 'Yes' : 'No'}} </span>
+                            Implement Equals & Hashcode :
                           </b-form-checkbox>
-                          <div v-if="$v.tempEntity.equalsAndHashCode.$error">
-                            <span class="errorMsg" v-if="!$v.tempEntity.equalsAndHashCode.$error.required"> equals & hashcode information is required! </span>
-                          </div>
+                          <span> {{tempEntity.equalsAndHashCode ? 'Yes' : 'No'}} </span>
                         </b-col>
                       </b-row>
                     </template>
@@ -311,112 +300,126 @@
                         </b-col>
                       </b-row>
 
-                      <b-row v-for="(attribute, index) in $v.tempEntity.attributes.$each.$iter" :key="index" >
-                        <b-col class="col-1 mt-4 pt-1">
-                          <b-form-group label=" " class="form-input-label">
-                            <i class="fa fa-minus table-icons" style="color: red !important;" title="delete Entity" @click="tempEntity.attributes.splice(parseInt(index),1)"/>
-                          </b-form-group>
-                        </b-col>
-                        <b-col class="col-3">
-                          <b-form-group label="Name :" class="form-input-label">
+                      <table class="table table-bordered">
+                        <thead>
+                        <tr class="text-center">
+                          <th scope="col" class="col-1">#</th>
+                          <th scope="col" class="col-2">Name</th>
+                          <th scope="col" class="col-3">Modifier</th>
+                          <th scope="col" class="col-3">Data type</th>
+                          <th scope="col" class="col-3">Type</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr v-for="(attribute, index) in $v.tempEntity.attributes.$each.$iter" :key="index">
+                          <td scope="col" class="text-center">
+                            <i class="fa fa-minus table-icons pt-1 my-auto" style="color: red !important;" title="delete Entity" @click="tempEntity.attributes.splice(parseInt(index),1)"/>
+                          </td>
+                          <td scope="col">
                             <b-form-input
                                 v-model="attribute.name.$model"
                                 type="text"
-                                placeholder="Enter Attribute Name"
+                                placeholder="Enter Name"
                                 @blur="attribute.name.$touch()"
                             />
                             <div v-if="attribute.name.$error">
                               <span class="errorMsg"> name is required, should be in valid format! </span>
                             </div>
-                          </b-form-group>
-                        </b-col>
-                        <b-col>
-                          <label class="form-input-label">Modifier :</label>
-                          <multiselect
-                              :options="attributeModifiersOptions"
-                              placeholder="Select an Option"
-                              track-by="value"
-                              label="label"
-                              :searchable="false"
-                              :allow-empty="false"
-                              :close-on-select="true"
-                              :multiple="false"
-                              v-model="attribute.modifier.$model"
-                          />
-                          <div v-if="attribute.modifier.$error">
-                            <span class="errorMsg" v-if="!attribute.modifier.ensureNotEmpty"> modifier is required! </span>
-                          </div>
-                        </b-col>
-                        <b-col>
-                          <label class="form-input-label">Data Type :</label>
-                          <multiselect
-                              :options="attributeTypesOptions"
-                              placeholder="Select an Option"
-                              track-by="value"
-                              label="label"
-                              :searchable="false"
-                              :allow-empty="false"
-                              :close-on-select="true"
-                              :multiple="false"
-                              v-model="attribute.dataType.$model"
-                              @input="updateProjectSuperEmbeddedClassDropdownList($event, index)"
-                          />
-                          <div v-if="attribute.dataType.$error">
-                            <span class="errorMsg" v-if="!attribute.dataType.ensureNotEmpty"> data type is required! </span>
-                          </div>
-                        </b-col>
-                        <b-col v-if="attribute.dataType.$model.value === 'Object'">
-                          <label class="form-input-label">Type :</label>
-                          <multiselect
-                              :options="superClassEmbeddedDropdownList"
-                              placeholder="Select an Option"
-                              track-by="value"
-                              label="label"
-                              :searchable="false"
-                              :allow-empty="false"
-                              :close-on-select="true"
-                              :multiple="false"
-                              v-model="attribute.type.$model"
-                          />
-                          <div v-if="attribute.type.$error">
-                            <span class="errorMsg" v-if="!attribute.type.ensureNotEmpty"> type is required! </span>
-                          </div>
-                        </b-col>
-                        <b-col v-show="attribute.dataType.$model.value === 'Date'">
-                          <label class="form-input-label">Type :</label>
-                          <multiselect
-                              :options="dateOptions"
-                              placeholder="Select an Option"
-                              track-by="value"
-                              label="label"
-                              :searchable="false"
-                              :allow-empty="false"
-                              :close-on-select="true"
-                              :multiple="false"
-                              v-model="attribute.type.$model"
-                          />
-                          <div v-if="attribute.type.$error">
-                            <span class="errorMsg" v-if="!attribute.type.ensureNotEmpty"> type is required! </span>
-                          </div>
-                        </b-col>
-                        <b-col v-if="attribute.dataType.$model.value === 'Simple'">
-                          <label class="form-input-label">Type :</label>
-                          <multiselect
-                              :options="simpleTypeOptions"
-                              placeholder="Select an Option"
-                              track-by="value"
-                              label="label"
-                              :searchable="false"
-                              :allow-empty="false"
-                              :close-on-select="true"
-                              :multiple="false"
-                              v-model="attribute.type.$model"
-                          />
-                          <div v-if="attribute.type.$error">
-                            <span class="errorMsg" v-if="!attribute.type.ensureNotEmpty"> type is required! </span>
-                          </div>
-                        </b-col>
-                      </b-row>
+                          </td>
+                          <td scope="col">
+                            <multiselect
+                                :options="attributeModifiersOptions"
+                                :placeholder="'Select an Option'"
+                                selectLabel=""
+                                deselectLabel=""
+                                track-by="value"
+                                label="label"
+                                :searchable="false"
+                                :allow-empty="false"
+                                :close-on-select="true"
+                                :multiple="false"
+                                v-model="attribute.modifier.$model"
+                            />
+                            <div v-if="attribute.modifier.$error">
+                              <span class="errorMsg" v-if="!attribute.modifier.required"> modifier is required! </span>
+                            </div>
+                          </td>
+                          <td scope="col">
+                            <multiselect
+                                :options="attributeTypesOptions"
+                                placeholder="Select an Option"
+                                selectLabel=""
+                                deselectLabel=""
+                                track-by="value"
+                                label="label"
+                                :searchable="false"
+                                :allow-empty="false"
+                                :close-on-select="true"
+                                :multiple="false"
+                                v-model="attribute.dataType.$model"
+                                @input="updateProjectSuperEmbeddedClassDropdownList($event, index)"
+                            />
+                            <div v-if="attribute.dataType.$error">
+                              <span class="errorMsg" v-if="!attribute.dataType.required"> data type is required! </span>
+                            </div>
+                          </td>
+                          <td scope="col" v-if="attribute.dataType.$model !== null && attribute.dataType.$model.value === 'Object'">
+                            <multiselect
+                                :options="superClassEmbeddedDropdownList"
+                                placeholder="Select an Option"
+                                selectLabel=""
+                                deselectLabel=""
+                                track-by="value"
+                                label="label"
+                                :searchable="false"
+                                :allow-empty="false"
+                                :close-on-select="true"
+                                :multiple="false"
+                                v-model="attribute.type.$model"
+                            />
+                            <div v-if="attribute.type.$error">
+                              <span class="errorMsg" v-if="!attribute.type.required"> type is required! </span>
+                            </div>
+                          </td>
+                          <td scope="col" v-show="attribute.dataType.$model !== null && attribute.dataType.$model.value === 'Date'">
+                            <multiselect
+                                :options="dateOptions"
+                                placeholder="Select an Option"
+                                selectLabel=""
+                                deselectLabel=""
+                                track-by="value"
+                                label="label"
+                                :searchable="false"
+                                :allow-empty="false"
+                                :close-on-select="true"
+                                :multiple="false"
+                                v-model="attribute.type.$model"
+                            />
+                            <div v-if="attribute.type.$error">
+                              <span class="errorMsg" v-if="!attribute.type.required"> type is required! </span>
+                            </div>
+                          </td>
+                          <td scope="col" v-if="attribute.dataType.$model !== null && attribute.dataType.$model.value === 'Simple'">
+                            <multiselect
+                                :options="simpleTypeOptions"
+                                placeholder="Select an Option"
+                                selectLabel=""
+                                deselectLabel=""
+                                track-by="value"
+                                label="label"
+                                :searchable="false"
+                                :allow-empty="false"
+                                :close-on-select="true"
+                                :multiple="false"
+                                v-model="attribute.type.$model"
+                            />
+                            <div v-if="attribute.type.$error">
+                              <span class="errorMsg" v-if="!attribute.type.required"> type is required! </span>
+                            </div>
+                          </td>
+                        </tr>
+                        </tbody>
+                      </table>
                     </template>
 
                     <!--  Association Settings  -->
@@ -431,124 +434,132 @@
                       </b-row>
 
                       <b-row v-for="(association, index) in $v.tempEntity.associations.$each.$iter" :key="index" >
-                        <b-col class="col-1 mt-4 pt-1 text-center">
-                          <b-form-group label=" " class="form-input-label">
-                            <i class="fa fa-minus table-icons" style="color: red !important;" title="delete Association" @click="tempEntity.associations.splice(parseInt(index),1)"/>
-                          </b-form-group>
-                        </b-col>
-                        <b-col class="col-4">
-                          <label class="form-input-label">Target :</label>
-                          <multiselect
-                              :options="associationDropdownList"
-                              placeholder="Select Target Entity"
-                              :searchable="false"
-                              :allow-empty="false"
-                              :close-on-select="true"
-                              :multiple="false"
-                              v-model="association.target.$model"
-                          />
-                          <div v-if="association.target.$error">
-                            <span class="errorMsg" v-if="!association.target.required"> target is required! </span>
-                          </div>
-                        </b-col>
 
-                        <b-col class="col-4">
-                          <b-form-group label="Reference Name :" class="form-input-label">
-                            <b-form-input
-                                v-model="association.referenceName.$model"
-                                type="text"
-                                placeholder="Enter Reference Name"
-                                @blur="association.referenceName.$touch()"
+                        <b-row class="col-12">
+                          <b-col class="col-lg-2 col-md-2 col-sm-4 mt-4 pt-1 text-center">
+                            <b-form-group label=" " class="form-input-label">
+                              <i class="fa fa-minus table-icons" style="color: red !important;" title="delete Association" @click="tempEntity.associations.splice(parseInt(index),1)"/>
+                            </b-form-group>
+                          </b-col>
+                          <b-col class="col-lg-5 col-md-5 col-sm-8">
+                            <label class="form-input-label">Target :</label>
+                            <multiselect
+                                :options="associationDropdownList"
+                                placeholder="Select Target Entity"
+                                selectLabel=""
+                                deselectLabel=""
+                                :searchable="false"
+                                :allow-empty="false"
+                                :close-on-select="true"
+                                :multiple="false"
+                                v-model="association.target.$model"
                             />
-                            <div v-if="association.referenceName.$error">
-                              <span class="errorMsg"> reference name is required and should be in! </span>
+                            <div v-if="association.target.$error">
+                              <span class="errorMsg" v-if="!association.target.required"> target is required! </span>
                             </div>
-                          </b-form-group>
-                        </b-col>
+                          </b-col>
 
-                        <b-col class="col-3">
-                          <label class="form-input-label">Cordinality :</label>
-                          <multiselect
-                              :options="cordinalityDropdownOptions"
-                              placeholder="Select an Option"
-                              track-by="value"
-                              label="label"
-                              :searchable="false"
-                              :allow-empty="false"
-                              :close-on-select="true"
-                              :multiple="false"
-                              v-model="association.cordinality.$model"
-                          />
-                          <div v-if="association.cordinality.$error">
-                            <span class="errorMsg" v-if="!association.cordinality.ensureNotEmpty"> cordinality is required! </span>
-                          </div>
-                        </b-col>
+                          <b-col class="col-lg-5 col-md-5 col-sm-12">
+                            <b-form-group label="Reference Name :" class="form-input-label">
+                              <b-form-input
+                                  v-model="association.referenceName.$model"
+                                  type="text"
+                                  placeholder="Enter Reference Name"
+                                  @blur="association.referenceName.$touch()"
+                              />
+                              <div v-if="association.referenceName.$error">
+                                <span class="errorMsg"> reference name is required and should be in! </span>
+                              </div>
+                            </b-form-group>
+                          </b-col>
+                        </b-row>
 
-                        <b-col class="col-6">
-                          <label class="form-input-label">Fetch Type :</label>
-                          <multiselect
-                              :options="fetchTypeDropdownOptions"
-                              placeholder="Select an Option"
-                              track-by="value"
-                              label="label"
-                              :searchable="false"
-                              :allow-empty="false"
-                              :close-on-select="true"
-                              :multiple="false"
-                              v-model="association.fetchType.$model"
-                          />
-                          <div v-if="association.fetchType.$error">
-                            <span class="errorMsg" v-if="!association.fetchType.ensureNotEmpty"> fetch Type is required! </span>
-                          </div>
-                        </b-col>
+                        <b-row class="col-12">
+                          <b-col class="col-lg-6 col-md-6 col-sm-12">
+                            <label class="form-input-label">Cordinality :</label>
+                            <multiselect
+                                :options="cordinalityDropdownOptions"
+                                placeholder="Select an Option"
+                                selectLabel=""
+                                deselectLabel=""
+                                track-by="value"
+                                label="label"
+                                :searchable="false"
+                                :allow-empty="false"
+                                :close-on-select="true"
+                                :multiple="false"
+                                v-model="association.cordinality.$model"
+                            />
+                            <div v-if="association.cordinality.$error">
+                              <span class="errorMsg" v-if="!association.cordinality.ensureNotEmpty"> cordinality is required! </span>
+                            </div>
+                          </b-col>
 
-                        <b-col class="col-6">
-                          <label class="form-input-label">Cascading Type :</label>
-                          <multiselect
-                              :options="cascadeTypeDropdownOptions"
-                              placeholder="Select an Option"
-                              track-by="value"
-                              label="label"
-                              :searchable="false"
-                              :allow-empty="false"
-                              :close-on-select="true"
-                              :multiple="false"
-                              v-model="association.cascadeType.$model"
-                          />
-                          <div v-if="association.cascadeType.$error">
-                            <span class="errorMsg" v-if="!association.cascadeType.ensureNotEmpty"> cascade type is required! </span>
-                          </div>
-                        </b-col>
+                          <b-col class="col-lg-6 col-md-6 col-sm-12">
+                            <label class="form-input-label">Cascading Type :</label>
+                            <multiselect
+                                :options="cascadeTypeDropdownOptions"
+                                placeholder="Select an Option"
+                                selectLabel=""
+                                deselectLabel=""
+                                track-by="value"
+                                label="label"
+                                :searchable="false"
+                                :allow-empty="false"
+                                :close-on-select="true"
+                                :multiple="false"
+                                v-model="association.cascadeType.$model"
+                            />
+                            <div v-if="association.cascadeType.$error">
+                              <span class="errorMsg" v-if="!association.cascadeType.ensureNotEmpty"> cascade type is required! </span>
+                            </div>
+                          </b-col>
+                        </b-row>
 
-                        <b-col class="col-6 mt-3">
-                          <label class="form-input-label">Is Unique item :</label>
-                          <b-form-checkbox
-                              v-model="association.uniqueItem.$model"
-                              name="uniqueItem-checkbox"
-                              :value="true"
-                              :unchecked-value="false"
-                          >
+                        <b-row class="col-12">
+                          <b-col class="col-lg-4 col-md-4 col-sm-12">
+                            <label class="form-input-label"></label>
+                            <b-form-checkbox
+                                v-model="association.fetchType.$model"
+                                name="fetchType-checkbox"
+                                :value="'LAZY'"
+                                :unchecked-value="'EAGER'"
+                            >
+                              Fetch Type
+                            </b-form-checkbox>
+                            <span> {{association.fetchType.$model ? association.fetchType.$model : ''}} </span>
+                          </b-col>
+
+                          <b-col class="col-lg-4 col-md-4 col-sm-12 mt-3">
+                            <b-form-checkbox
+                                v-model="association.uniqueItem.$model"
+                                name="uniqueItem-checkbox"
+                                :value="true"
+                                :unchecked-value="false"
+                            >
+                              Is Unique item
+                            </b-form-checkbox>
                             <span> {{association.uniqueItem.$model ? 'Yes' : 'No'}} </span>
-                          </b-form-checkbox>
-                          <div v-if="association.uniqueItem.$error">
-                            <span class="errorMsg" v-if="!association.uniqueItem.required"> is unique item information is required! </span>
-                          </div>
-                        </b-col>
+                            <div v-if="association.uniqueItem.$error">
+                              <span class="errorMsg" v-if="!association.uniqueItem.required"> is unique item information is required! </span>
+                            </div>
+                          </b-col>
 
-                        <b-col class="col-6 mt-3">
-                          <label class="form-input-label">Is Association Bi-Directional :</label>
-                          <b-form-checkbox
-                              v-model="association.biDirectional.$model"
-                              name="biDirectional-checkbox"
-                              :value="true"
-                              :unchecked-value="false"
-                          >
+                          <b-col class="col-lg-4 col-md-4 col-sm-12 mt-3">
+                            <b-form-checkbox
+                                v-model="association.biDirectional.$model"
+                                name="biDirectional-checkbox"
+                                :value="true"
+                                :unchecked-value="false"
+                            >
+                              Is Association Bi-Directional
+                            </b-form-checkbox>
                             <span> {{association.biDirectional.$model ? 'Yes' : 'No'}} </span>
-                          </b-form-checkbox>
-                          <div v-if="association.biDirectional.$error">
-                            <span class="errorMsg" v-if="!association.biDirectional.required"> direction information is required! </span>
-                          </div>
-                        </b-col>
+                            <div v-if="association.biDirectional.$error">
+                              <span class="errorMsg" v-if="!association.biDirectional.required"> direction information is required! </span>
+                            </div>
+                          </b-col>
+                        </b-row>
 
                       </b-row>
                     </template>
@@ -557,12 +568,12 @@
 
                   <template slot="footer" slot-scope="entitiesProps">
                     <div class="wizard-footer-left">
-                      <wizard-button  v-if="entitiesProps.activeTabIndex > 0" @click.native="entitiesProps.prevTab()" style="background-color: saddlebrown; color: white" :style="entitiesProps.fillButtonStyle">Previous</wizard-button>
-                      <wizard-button class="main-wizard-buttons-margin" style="background-color: saddlebrown; color: white" :style="entitiesProps.fillButtonStyle" v-if="!entitiesProps.isLastStep" @click.native="entitiesProps.nextTab()" > Next </wizard-button>
+                      <wizard-button class="sub-wizard-buttons-style" v-if="entitiesProps.activeTabIndex > 0" @click.native="entitiesProps.prevTab()" :style="entitiesProps.fillButtonStyle">Previous</wizard-button>
+                      <wizard-button class="sub-wizard-buttons-style" style="background-color: saddlebrown; color: white" :style="entitiesProps.fillButtonStyle" v-if="!entitiesProps.isLastStep" @click.native="entitiesProps.nextTab()" > Next </wizard-button>
                     </div>
                     <div class="wizard-footer-right">
-                      <wizard-button class="main-wizard-buttons-margin"  style="background-color: saddlebrown; color: white" @click.native="onEntitiesWizardReset()"> Reset </wizard-button>
-                      <wizard-button class="main-wizard-buttons-margin"  style="background-color: saddlebrown; color: white" v-if="entitiesProps.isLastStep" @click.native="entitiesProps.nextTab()"> Validate </wizard-button>
+                      <wizard-button class="sub-wizard-buttons-style"  @click.native="onEntitiesWizardReset()"> Reset </wizard-button>
+                      <wizard-button class="sub-wizard-buttons-style"  v-if="entitiesProps.isLastStep" @click.native="entitiesProps.nextTab()"> Validate </wizard-button>
                     </div>
                   </template>
 
@@ -581,18 +592,17 @@
         <template slot="footer" slot-scope="props">
           <div class="wizard-footer-left">
             <wizard-button  v-if="props.activeTabIndex > 0" style="background-color: #17a2b8; color: white" @click.native="props.prevTab()" :style="props.fillButtonStyle">Previous</wizard-button>
-            <wizard-button class="main-wizard-buttons-margin"  style="background-color: #17a2b8; color: white" :style="props.fillButtonStyle" v-if="!props.isLastStep" @click.native="props.nextTab()" > Next </wizard-button>
           </div>
           <div class="wizard-footer-right">
-            <wizard-button class="main-wizard-buttons-margin"  style="background-color: #17a2b8; color: white"> Cancel </wizard-button>
-            <wizard-button class="main-wizard-buttons-margin"  style="background-color: #17a2b8; color: white" @click.native="onReset()"> Reset </wizard-button>
-            <wizard-button class="main-wizard-buttons-margin"  style="background-color: #17a2b8; color: white" v-if="props.isLastStep" @click.native="props.nextTab()"> Preview </wizard-button>
-            <wizard-button class="main-wizard-buttons-margin"  style="background-color: #17a2b8; color: white" v-if="props.isLastStep" @click.native="props.nextTab()" > Download </wizard-button>
+            <wizard-button class="main-wizard-buttons-style" > Cancel </wizard-button>
+            <wizard-button class="main-wizard-buttons-style" @click.native="onReset()"> Reset </wizard-button>
+            <wizard-button class="main-wizard-buttons-style" :style="props.fillButtonStyle" v-if="!props.isLastStep" @click.native="props.nextTab()" > Next </wizard-button>
+            <wizard-button class="main-wizard-buttons-style" v-if="props.isLastStep" @click.native="props.nextTab()"> Preview </wizard-button>
+            <wizard-button class="main-wizard-buttons-style" v-if="props.isLastStep" @click.native="props.nextTab()" > Download </wizard-button>
           </div>
         </template>
 
       </form-wizard>
-
     </b-card-text>
   </b-card>
 </template>
@@ -658,18 +668,6 @@ export default {
       };
 
       this.isWizardEnabled =!this.isWizardEnabled;
-    },
-    updateTechnologyVersionDropdown(event){
-
-      this.dataModel.technologyVersion = '';
-
-      switch (event.value){
-        case 'SPRING_BOOT':
-          this.technologiesVersionDropdownsList = this.javaTechnologiesVersionDropdownsList;
-          return;
-        default :
-          this.technologiesVersionDropdownsList = [];
-      }
     },
     isGeneralSettingsValid(){
 
@@ -858,10 +856,7 @@ export default {
       for (let i = 0; i < this.tempEntity.attributes.length; i++) {
 
         if(i === parseInt(key)){
-          this.tempEntity.attributes[i].type = {
-            label: '',
-            value: ''
-          };
+          this.tempEntity.attributes[i].type = null;
         }
       }
 
@@ -883,18 +878,9 @@ export default {
       this.tempEntity.attributes.push({
         id: size,
         name: '',
-        modifier: {
-          label: '',
-          value : ''
-        },
-        dataType : {
-          label: '',
-          value : ''
-        },
-        type: {
-          label: '',
-          value : ''
-        }
+        modifier: null,
+        dataType : null,
+        type: null
       });
     },
     addAssociation(){
@@ -919,10 +905,7 @@ export default {
         },
         biDirectional: false,
         referenceName: '',
-        fetchType: {
-          label: '',
-          value : ''
-        },
+        fetchType: 'EAGER',
         cascadeType:{
           label: '',
           value : ''
@@ -997,7 +980,7 @@ export default {
       entitiesWizardTabs:[
         { name: 'generalEntitiesSettings', title: 'Global Information', icon: 'fa fa-info-circle', beforeChange : () => this.isEntityGeneralSettingsValid()},
         { name: 'attributeSettings', title: 'Attributes', icon: 'fa fa-list', beforeChange : () => this.isEntitiesAttributesListValid()},
-        { name: 'associationSettings', title: 'Associations List', icon: 'fa fa-map-signs', beforeChange : () => this.isJoinsListValid()},
+        { name: 'associationSettings', title: 'Associations', icon: 'fa fa-map-signs', beforeChange : () => this.isJoinsListValid()},
       ],
       technologiesDropdownsList : [
         {
@@ -1029,7 +1012,7 @@ export default {
         },
         {
           key: 'embeddable',
-          label: 'Embeddable',
+          label: 'Persistable',
           sortable: false,
         },
         {
@@ -1253,20 +1236,13 @@ export default {
             }
           },
           modifier: {
-            required,
-            ensureNotEmpty(data){
-              return data.value !== '';
-            }
+            required
           },
           dataType: {
-            ensureNotEmpty(data){
-              return data.value !== '';
-            }
+            required
           },
           type: {
-            ensureNotEmpty(data){
-              return data.value !== '';
-            }
+            required
           }
         }
       },
@@ -1298,9 +1274,7 @@ export default {
             }
           },
           fetchType: {
-            ensureNotEmpty(data){
-              return data.value !== '';
-            }
+            required
           }
         }
       }
@@ -1310,18 +1284,6 @@ export default {
 </script>
 
 <style scoped>
-
-.card-title {
-  font-weight: bold;
-  font-size: 22px;
-  color: #17a2b8;
-}
-
-.card-title-icon {
-  margin-right: 3px;
-  font-size: 22px;
-  color: #17a2b8;
-}
 
 .form-input-label {
   font-weight: bold;
@@ -1333,7 +1295,16 @@ export default {
   font-weight: bold;
 }
 
-.main-wizard-buttons-margin {
+.main-wizard-buttons-style {
+  margin-right: 5px;
+  margin-left: 5px;
+  background-color: #17a2b8 !important;
+  color: white !important;
+}
+
+.sub-wizard-buttons-style{
+  background-color: saddlebrown !important;
+  color: white !important;
   margin-right: 5px;
   margin-left: 5px;
 }
@@ -1348,6 +1319,7 @@ export default {
   margin-left: 5px;
   margin-right: 5px;
   cursor: pointer;
+  font-size: 20px;
 }
 
 .disable_table{
@@ -1361,4 +1333,16 @@ export default {
 .cursor-pointer{
   cursor: pointer;
 }
+
+.no-padding-or-margin {
+  padding-top: 0;
+  margin-top: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 0;
+  padding-right: 0;
+  margin-right: 0;
+  margin-left: 0;
+}
+
 </style>
