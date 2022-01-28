@@ -1304,7 +1304,7 @@ export default {
 .card-body {
   padding-right: 0rem !important;
   padding-left: 0rem !important;
-  padding-bottom: 1rem !important;
+  padding-bottom: 0.5rem !important;
   padding-top: 1rem !important;
 }
 
