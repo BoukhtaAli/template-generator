@@ -2,13 +2,13 @@
   <b-card class="mx-auto rounded shadow justify-content-center" bg-variant="light">
 
     <b-card-text>
-      <form-wizard class="no-padding-or-margin" title="" subtitle="" next-button-text="Next" color="#17a2b8" shape="tab" ref="mainWizard">
+      <custom-form-wizard class="no-padding-or-margin" title="" subtitle="" next-button-text="Next" color="#17a2b8" shape="tab" ref="mainWizard">
 
         <tab-content v-for="(tab,index) in mainWizardTabs" :key="index" :title="tab.title" :icon="tab.icon" :before-change="tab.beforeChange" class="border-bottom pb-3">
 
           <!--    General Settings   -->
 
-          <template v-if="tab.name==='generalSettings'">
+          <div v-if="tab.name==='generalSettings'" class="data-wrapper">
 
             <b-row>
               <b-col class="col-6">
@@ -144,11 +144,11 @@
               </b-col>
             </b-row>
 
-          </template>
+          </div>
 
           <!--    Entities List Settings   -->
 
-          <template v-if="tab.name==='entitiesList'">
+          <div v-if="tab.name==='entitiesList'">
 
             <b-row>
 
@@ -185,7 +185,7 @@
 
                 <p class="sub-wizard-title text-center">Entities Management</p>
 
-                <form-wizard :class="[ isWizardEnabled ? '' : 'disable_table']" title="" subtitle="" next-button-text="Next" color="saddlebrown" shape="tab" ref="entitiesWizard" @on-complete=addEntityToTable()>
+                <custom-form-wizard :class="[ isWizardEnabled ? '' : 'disable_table']" title="" subtitle="" next-button-text="Next" color="saddlebrown" shape="tab" ref="entitiesWizard" @on-complete=addEntityToTable()>
                   <tab-content class="pb-5" v-for="(entitiesTab,entitiesIndex) in entitiesWizardTabs" :key="entitiesIndex" :title="entitiesTab.title" :icon="entitiesTab.icon" :before-change="entitiesTab.beforeChange">
 
                     <template v-if="entitiesTab.name==='generalEntitiesSettings'">
@@ -577,13 +577,13 @@
                     </div>
                   </template>
 
-                </form-wizard>
+                </custom-form-wizard>
 
               </b-col>
 
             </b-row>
 
-          </template>
+          </div>
 
         </tab-content>
 
@@ -602,7 +602,7 @@
           </div>
         </template>
 
-      </form-wizard>
+      </custom-form-wizard>
     </b-card-text>
   </b-card>
 </template>
@@ -611,9 +611,13 @@
 import {required,requiredIf} from 'vuelidate/lib/validators';
 import {notyf} from "@/notyf";
 import ModalMixin from "@/mixins/ModalMixin";
+import CustomFormWizard from "./wizard/FormWizard";
 
 export default {
   name: "Form",
+  components:{
+    CustomFormWizard
+  },
   mixins: [ModalMixin],
   props: {
 
@@ -1297,6 +1301,21 @@ export default {
 
 <style scoped>
 
+.card-body {
+  padding-right: 0rem !important;
+  padding-left: 0rem !important;
+  padding-bottom: 1rem !important;
+  padding-top: 1rem !important;
+}
+
+.data-wrapper {
+  width: 100%;
+  padding-right: 0px !important;
+  padding-left: 0px !important;
+  padding-bottom: 0px !important;
+  padding-top: 0px !important;
+}
+
 .form-input-label {
   font-weight: bold;
 }
@@ -1308,8 +1327,8 @@ export default {
 }
 
 .main-wizard-buttons-style {
-  margin-right: 5px;
-  margin-left: 5px;
+  margin-right: 4px;
+  margin-left: 4px;
   background-color: #17a2b8 !important;
   color: white !important;
 }
@@ -1317,8 +1336,8 @@ export default {
 .sub-wizard-buttons-style{
   background-color: saddlebrown !important;
   color: white !important;
-  margin-right: 5px;
-  margin-left: 5px;
+  margin-right: 4px;
+  margin-left: 4px;
 }
 
 .sub-wizard-title {
@@ -1347,14 +1366,8 @@ export default {
 }
 
 .no-padding-or-margin {
-  padding-top: 0;
-  margin-top: 0;
-  padding-top: 0;
-  padding-bottom: 0;
-  padding-left: 0;
-  padding-right: 0;
-  margin-right: 0;
-  margin-left: 0;
+  padding: 0 !important;
+  margin: 0 !important;;
 }
 
 </style>
