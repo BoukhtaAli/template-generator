@@ -154,15 +154,15 @@
 
               <b-col class="col-md-4 col-sm-12 col-lg-4 text-center mx-auto pb-5">
                 <b-row>
-                  <b-col class="col-11" :class="[ isWizardEnabled ? 'cursor-pointer' : 'cursor-not-allowed']">
+                  <b-col class="col-11">
                     <label class="sub-wizard-title">Entities Resume</label>
                   </b-col>
                   <b-col class="text-right text-success cursor-pointer">
                     <i title="add new Entity" class="fa fa-plus-circle" style="font-size: 20px" @click="addNewEntity()"/>
                   </b-col>
                 </b-row>
-                <div :class="[ isWizardEnabled ? 'cursor-not-allowed' : '']">
-                  <b-table :class="[ isWizardEnabled ? 'disable_table' : '']" ref="table" striped bordered hover :items="dataModel.entities" :fields="entities_table_fields">
+                <div>
+                  <b-table ref="table" striped bordered hover :items="dataModel.entities" :fields="entities_table_fields">
                     <template #cell(superClass)="data">
                       {{ data.value !== null && data.value !== undefined  && data.value !== '' ? data.value : '---' }}
                     </template>
@@ -673,6 +673,26 @@ export default {
 
       this.swipeWizardState();
     },
+    resetToAdd(){
+      this.$v.tempEntity.$reset();
+      this.$refs.entitiesWizard[0].reset();
+
+      this.tempEntity = {
+        id: null,
+        name: '',
+        serializable: false,
+        superClass: '',
+        equalsAndHashCode:false,
+        embeddable: false,
+        attributes: [],
+        associations: []
+      };
+
+      this.selectedSuperClassType = {
+        label: 'No Selection',
+        value: '',
+      };
+    },
     isGeneralSettingsValid(){
 
       //Toggle Error Messages for General Settings Section
@@ -886,12 +906,6 @@ export default {
           break;
       }
     },
-    addNewEntity(){
-      this.commonEntityWizardReset();
-      if (!this.isWizardEnabled) {
-        this.isWizardEnabled = !this.isWizardEnabled;
-      }
-    },
     addAttribute(){
       let size = this.tempEntity.attributes.length;
       this.tempEntity.attributes.push({
@@ -962,6 +976,19 @@ export default {
     },
     swipeWizardState(){
       this.isWizardEnabled = ! this.isWizardEnabled;
+    },
+    addNewEntity(){
+      if(this.dataModel.entities.length === 0){
+        if(!this.isWizardEnabled){
+          this.swipeWizardState();
+        }
+        this.resetToAdd();
+      }else {
+        this.resetToAdd();
+        if(!this.isWizardEnabled){
+          this.swipeWizardState();
+        }
+      }
     }
   },
   data () {
