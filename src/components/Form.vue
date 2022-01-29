@@ -157,8 +157,8 @@
                   <b-col class="col-11" :class="[ isWizardEnabled ? 'cursor-pointer' : 'cursor-not-allowed']">
                     <label class="sub-wizard-title">Entities Resume</label>
                   </b-col>
-                  <b-col class="text-right text-success cursor-pointer" v-if="!isWizardEnabled">
-                    <i title="add new Entity" class="fa fa-plus-circle" style="font-size: 20px" @click="swipeWizardState()"/>
+                  <b-col class="text-right text-success cursor-pointer">
+                    <i title="add new Entity" class="fa fa-plus-circle" style="font-size: 20px" @click="addNewEntity()"/>
                   </b-col>
                 </b-row>
                 <div :class="[ isWizardEnabled ? 'cursor-not-allowed' : '']">
@@ -300,7 +300,7 @@
                         </b-col>
                       </b-row>
 
-                      <table class="table table-bordered">
+                      <table class="table">
                         <thead>
                         <tr class="text-center">
                           <th scope="col" class="col-1">#</th>
@@ -313,7 +313,7 @@
                         <tbody>
                         <tr v-for="(attribute, index) in $v.tempEntity.attributes.$each.$iter" :key="index">
                           <td scope="col" class="text-center">
-                            <i class="fa fa-minus table-icons pt-1 my-auto" style="color: red !important;" title="delete Entity" @click="tempEntity.attributes.splice(parseInt(index),1)"/>
+                            <i class="fa fa-times table-icons pt-1 my-auto" style="color: red !important;" title="delete Entity" @click="tempEntity.attributes.splice(parseInt(index),1)"/>
                           </td>
                           <td scope="col">
                             <b-form-input
@@ -438,7 +438,7 @@
                         <b-row class="col-12">
                           <b-col class="col-lg-2 col-md-2 col-sm-4 mt-4 pt-1 text-center">
                             <b-form-group label=" " class="form-input-label">
-                              <i class="fa fa-minus table-icons" style="color: red !important;" title="delete Association" @click="tempEntity.associations.splice(parseInt(index),1)"/>
+                              <i class="fa fa-times table-icons" style="color: red !important;" title="delete Association" @click="tempEntity.associations.splice(parseInt(index),1)"/>
                             </b-form-group>
                           </b-col>
                           <b-col class="col-lg-5 col-md-5 col-sm-8">
@@ -886,6 +886,12 @@ export default {
           break;
       }
     },
+    addNewEntity(){
+      this.commonEntityWizardReset();
+      if (!this.isWizardEnabled) {
+        this.isWizardEnabled = !this.isWizardEnabled;
+      }
+    },
     addAttribute(){
       let size = this.tempEntity.attributes.length;
       this.tempEntity.attributes.push({
@@ -1041,13 +1047,13 @@ export default {
         {
           key: 'edit',
           icon: 'fa fa-edit',
-          class: 'text-primary',
+          class: 'text-warning',
           label: 'Edit',
           actionEvent: 'editEntity'
         },
         {
           key: 'remove',
-          icon: 'fa fa-minus',
+          icon: 'fa fa-trash-alt',
           class: 'text-danger',
           label: 'Remove',
           actionEvent: 'removeEntity'
